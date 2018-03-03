@@ -19,3 +19,11 @@ If you discover a security vulnerability within Lumen, please send an e-mail to 
 ## License
 
 The Lumen framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+
+## A Live PoC
+
+- Run a PHP built in server from your root project:
+
+```sh
+php -S localhost:8000 -t public/
+```

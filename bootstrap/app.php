@@ -24,7 +24,7 @@ $app = new Laravel\Lumen\Application(
 );
 
 
-// $app->withFacades();  Don't use!!!!!!!
+$app->withFacades();
 
 $app->withEloquent();
 
@@ -82,7 +82,7 @@ $app->singleton(
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
-
+$app->register(App\Providers\LogServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
@@ -94,10 +94,10 @@ $app->singleton(
 |
 */
 
-$app->router->group([
+$app->router->group(['prefix' => 'api',
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {
-    require __DIR__.'/../routes/web.php';
+    require __DIR__.'/../routes/api.php';
 });
 
 return $app;

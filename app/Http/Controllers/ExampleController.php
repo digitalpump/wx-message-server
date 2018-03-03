@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Log;
+
 class ExampleController extends Controller
 {
     /**
@@ -12,6 +15,11 @@ class ExampleController extends Controller
     public function __construct()
     {
         //
+    }
+
+    public function welcome(Request $request) {
+        Log::info("I am jeffrey");
+        return $this->success(["your"=>"jeffrey"]);
     }
 
     //

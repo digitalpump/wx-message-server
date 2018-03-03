@@ -11,6 +11,7 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
+//$app->group(['prefix' => 'appv5', 'namespace' => 'App\Http\Controllers', 'middleware' => ['auth', 'active_status','after']], function () use ($app) {
+
+//}
+$router->get('/welcome','ExampleController@welcome');

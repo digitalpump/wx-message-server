@@ -2,5 +2,5 @@
 /.idea
 Homestead.json
 Homestead.yaml
-.env
 /storage
+lumen_ide_helper.php
