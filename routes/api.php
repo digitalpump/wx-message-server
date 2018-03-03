@@ -15,3 +15,4 @@
 
 //}
 $router->get('/welcome','ExampleController@welcome');
+$router->get('/getout','ExampleController@getout');

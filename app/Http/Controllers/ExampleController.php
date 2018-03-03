@@ -22,5 +22,9 @@ class ExampleController extends Controller
         return $this->success(["your"=>"jeffrey"]);
     }
 
+    public function getout(Request $request) {
+        return $this->error();
+    }
+
     //
 }
