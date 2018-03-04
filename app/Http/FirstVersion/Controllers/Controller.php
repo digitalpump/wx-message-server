@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\FirstVersion\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -23,9 +23,9 @@ class Controller extends BaseController
 
     private function response_json($info,$data,$code) {
         if(empty($data)) {
-            return response()->json(['code'=>$code,'info'=>$info,'data'=>new \stdClass()]);
+            return response()->json(['code'=>$code,'message'=>$info,'data'=>new \stdClass()]);
         }
-        return response()->json(['code'=>$code,'info'=>$info,'data'=>$data]);
+        return response()->json(['code'=>$code,'message'=>$info,'data'=>$data]);
     }
 
 }

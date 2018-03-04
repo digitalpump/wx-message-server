@@ -16,3 +16,4 @@
 //}
 $router->get('/welcome','ExampleController@welcome');
 $router->get('/getout','ExampleController@getout');
+$router->get('/login/email','JWTAuthController@emailLogin');

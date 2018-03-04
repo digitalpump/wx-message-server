@@ -23,6 +23,7 @@ $app = new Laravel\Lumen\Application(
     realpath(__DIR__.'/../')
 );
 
+require_once __DIR__.'/../config/configure.php';
 
 $app->withFacades();
 
@@ -93,11 +94,6 @@ $app->register(App\Providers\LogServiceProvider::class);
 | can respond to, as well as the controllers that may handle them.
 |
 */
-
-$app->router->group(['prefix' => 'api',
-    'namespace' => 'App\Http\Controllers',
-], function ($router) {
-    require __DIR__.'/../routes/api.php';
-});
+require_once __DIR__ . '/../routes/route.php';
 
 return $app;

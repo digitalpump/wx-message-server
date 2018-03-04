@@ -6,5 +6,5 @@
  * Time: 01:15
  */
 return [
-    'log_channel' => env('APP_LOG_CHANNEL', 'j'),
+    'log_channel' => env('APP_LOG_CHANNEL', 'jeff_channel'),
 ];

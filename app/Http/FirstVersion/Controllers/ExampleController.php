@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\FirstVersion\Controllers;
 
 use Illuminate\Http\Request;
 use Log;
@@ -19,7 +19,8 @@ class ExampleController extends Controller
 
     public function welcome(Request $request) {
         Log::info("I am jeffrey");
-        return $this->success(["your"=>"jeffrey"]);
+        $log_channel = config('app.log_channel');
+        return $this->success(["your"=>"jeffrey",'channel'=>$log_channel]);
     }
 
     public function getout(Request $request) {
