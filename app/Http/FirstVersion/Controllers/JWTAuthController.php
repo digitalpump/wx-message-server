@@ -13,6 +13,8 @@ use Dotenv\Exception\ValidationException;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Redis;
+
 class JWTAuthController extends Controller
 {
 
@@ -42,7 +44,11 @@ class JWTAuthController extends Controller
         );
 
         $jwt_token = JWT::encode($jwt_body,$secret_key,$algo);
-        return $this->onAuthorized("XXXYYYY",$jwt_token);
+        $key = "jeffrey_token";
+        Redis::setex($key,60,$jwt_token);
+        //app('redis')->put($key,$jwt_token);
+        $refresh_token = Redis::get($key);
+        return $this->onAuthorized($refresh_token,$jwt_token);
 
     }
     protected function onAuthorized($refreshToken,$token) {
