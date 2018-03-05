@@ -13,6 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        //保存和获取用户信息的单例
+        $this->app->singleton("user",function($app) {
+
+        });
     }
 }

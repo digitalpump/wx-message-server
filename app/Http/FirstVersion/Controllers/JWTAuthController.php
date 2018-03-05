@@ -9,6 +9,7 @@
 namespace App\Http\FirstVersion\Controllers;
 
 
+use App\Common\Tools\Jwt\PayloadFactory;
 use Dotenv\Exception\ValidationException;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
@@ -34,16 +35,15 @@ class JWTAuthController extends Controller
         $refresh_ttl = config('jwt.refresh_ttl');
         $algo = config('jwt.algo');
 
+        $payloadFactory = new PayloadFactory($ttl);
+
+        $jwt_body = $payloadFactory->makePayloadWithUserId(2);
         //callback login ?
-        $jwt_body = array(
-            "user_id" => 1,
-            "user_name" => 'jeffrey',
-            "email" => $request->get('email'),
-            "aud"=>"chronos",
-            "iat" => Carbon::now(),
-        );
+
 
         $jwt_token = JWT::encode($jwt_body,$secret_key,$algo);
+
+        JWT::decode($jwt_token,$secret_key,$algo);
         $key = "jeffrey_token";
         Redis::setex($key,60,$jwt_token);
         //app('redis')->put($key,$jwt_token);
