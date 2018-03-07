@@ -90,7 +90,10 @@ class JWTAuth
 
     private function validateAuthorizationHeader() {
         if(empty($this->request)) return false;
-        if (Str::startsWith(strtolower($this->request->headers->get('authorization')), $this->getAuthorizationMethod())) {
+        $authHeader = $this->request->headers->get('authorization');
+        if(empty($authHeader)) return false;
+
+        if (Str::startsWith(strtolower($authHeader), $this->getAuthorizationMethod())) {
             return true;
         }
         return false;
