@@ -13,6 +13,7 @@ namespace App\Console\Commands;
 use App\Events\RefundEvent;
 use Illuminate\Console\Command;
 use Event;
+
 class TestEvent extends Command
 {
     protected $name = 'cs:testEvent';
@@ -27,6 +28,8 @@ class TestEvent extends Command
 
     public function handle()
     {
+        app('JwtUser')->setId(1);
+
         Event::fire(new RefundEvent(12,-1,0));
     }
 }

@@ -1,15 +1,17 @@
 <?php
-namespace App\Common\Tools;
+namespace App\Common\Tools\Jwt;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Mockery\Exception;
+
 /**
  * Created by PhpStorm.
  * User: jeffrey
  * Date: 2018/3/4
  * Time: 09:02
  */
-class JWTAuth
+class JwtAuth
 {
     /**
      * @var \Illuminate\Http\Request
@@ -63,27 +65,31 @@ class JWTAuth
     public function authenticate() {
 
         if(!$this->validateAuthorizationHeader()) {
-            throw new \UnexpectedValueException("Authorization header not found");
+            throw new AuthHeaderNotFoundException("Authorization header not found");
         }
 
         $token = $this->parseAuthorizationHeader();
 
         if(empty($token)) {
-            throw  new \UnexpectedValueException("Empty token");
+            throw  new AuthTokenEmptyException("Empty token");
         }
         $payload = null;
 
-        if (empty($this->algo)) {
-            $payload = JWT::decode($token,$this->secret);
-        } else {
-            $payload = JWT::decode($token,$this->secret,$this->algo);
+        try {
+            if (empty($this->algo)) {
+                $payload = JWT::decode($token, $this->secret);
+            } else {
+                $payload = JWT::decode($token, $this->secret, [$this->algo]);
+            }
+        } catch (\Exception $exception){
+            throw new \UnexpectedValueException($exception->getMessage());
         }
 
         if(empty($payload)) {
             throw new \UnexpectedValueException("Empty payload");
         }
         if(empty($payload->sub)) {
-            throw new \UnexpectedValueException("Empty sub claim");
+            throw new SubClaimNotFoundException("Empty sub claim");
         }
         return $payload->sub;
     }

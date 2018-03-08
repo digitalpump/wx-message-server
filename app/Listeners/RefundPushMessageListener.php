@@ -21,5 +21,6 @@ class RefundPushMessageListener
         $cur_process_status = $event->cur_process_status;
         echo "\r\nRefundPushMessageListener refund prev_process_status=" . $prev_process_status
             . " id=" . $id . " cur_process_status=" . $event->cur_process_status . "\r\n" ;
+        echo "\r\n user id=" . app('JwtUser')->getId();
     }
 }

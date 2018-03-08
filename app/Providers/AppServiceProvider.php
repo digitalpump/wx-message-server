@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Common\Tools\Jwt\JwtUser;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -14,8 +15,8 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //保存和获取用户信息的单例
-        $this->app->singleton("user",function($app) {
-
+        $this->app->singleton("JwtUser",function($app) {
+            return new JwtUser();
         });
     }
 }

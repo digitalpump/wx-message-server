@@ -11,7 +11,7 @@ $app->router->group(['prefix' => 'api/v1',
     require_once __DIR__ . '/api_v1.php';
 });
 $app->router->group(['prefix'=>'api/v1','namespace' => 'App\Http\FirstVersion\Controllers',
-    'middleware' => ['auth']
+    'middleware' => ['jwt.auth']
 ],function ($router){
     require_once __DIR__ . '/api_v1_auth.php';
 });

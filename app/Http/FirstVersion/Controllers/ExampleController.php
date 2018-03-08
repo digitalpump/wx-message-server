@@ -27,5 +27,10 @@ class ExampleController extends Controller
         return $this->error();
     }
 
+    public function hello(Request $request) {
+        $uid = app('JwtUser')->getId();
+        return $this->success(['uid'=>$uid,'info'=>'hello lumen world']);
+    }
+
     //
 }

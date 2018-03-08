@@ -61,14 +61,14 @@ $app->singleton(
 | route or middleware that'll be assigned to some specific routes.
 |
 */
-
-// $app->middleware([
-//    App\Http\Middleware\ExampleMiddleware::class
-// ]);
-
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+/*
+$app->middleware([
+    App\Http\Middleware\JwtAuthenticate::class,
+]);
+*/
+ $app->routeMiddleware([
+     'jwt.auth' => App\Http\Middleware\JwtAuthenticate::class,
+ ]);
 
 /*
 |--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ $app->singleton(
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(App\Providers\EventServiceProvider::class);
 //Log service
@@ -89,6 +89,8 @@ $app->register(App\Providers\LogServiceProvider::class);
 
 //Redis service
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
+
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
