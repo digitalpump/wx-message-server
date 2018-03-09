@@ -26,7 +26,6 @@ use Log;
 class JWTAuthController extends Controller
 {
 
-    private $testUserDeviceId = "IJysdfkyjklkhyiiii28";
     public function emailLogin(Request $request) {
 
         try {
@@ -39,14 +38,22 @@ class JWTAuthController extends Controller
             return $e->getResponse();
         }
 
+        $did = $request->headers->get('DeviceId');
+        if (empty($did)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"Did not found");
+        }
         $uid = 2;
 
-        $tokens = $this->generateNewToken(new JwtAuth($request),$uid,$this->testUserDeviceId);
+        $tokens = $this->generateNewToken(new JwtAuth($request),$uid,$did);
         return $this->onAuthorized($tokens);
 
     }
 
     public function refreshToken(Request $request) {
+        $did = $request->headers->get('DeviceId');
+        if (empty($did)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"Did not found");
+        }
         $jwtAuth = new JwtAuth($request);
         try {
             $payload = $jwtAuth->authenticate();
@@ -68,9 +75,17 @@ class JWTAuthController extends Controller
         if (empty($payload->did)) {
             return $this->error(HttpStatusCode::BAD_REQUEST,"Device id unknown");
         }
+
+
         $deviceId = $payload->did;
-        if($deviceId == $this->testUserDeviceId) {
+
+        if($deviceId == $did) {
             $uid = $payload->sub;
+            // 和 redis 中的 refresh token 对比
+            $tokenInRedis = Redis::get($jwtAuth->getRedisKey().$uid);
+            if ($tokenInRedis!=$jwtAuth->getToken()) {
+               return $this->error(HttpStatusCode::REQUEST_TIMEOUT,"Refresh token expired.");
+            }
             $tokens = $this->generateNewToken($jwtAuth,$uid,$deviceId);
             return $this->onAuthorized($tokens);
         } else {
@@ -79,14 +94,21 @@ class JWTAuthController extends Controller
 
     }
 
-    private function generateNewToken($jwtAuth,$uid,$deviceId) {
+    /**
+     * 生成新的token
+     * @param $jwtAuth
+     * @param $uid
+     * @param $deviceId
+     * @return array
+     */
+    private function generateNewToken(JwtAuth $jwtAuth,$uid,$deviceId) {
 
         $jwt_token = $jwtAuth->newToken($uid);
 
         $refresh_token = $jwtAuth->newRefreshToken($uid,$deviceId);
 
-        $key = "refresh_token_user_".$uid;
-        Redis::setex($key,$jwtAuth->getRefreshTtl()*60,$refresh_token);
+        Redis::setex($jwtAuth->getRedisKey().$uid,$jwtAuth->getRefreshTtl()*60,$refresh_token);
+
         return ['token'=>$jwt_token,'refresh_token'=>$refresh_token];
     }
 

@@ -32,6 +32,8 @@ class JwtAuth
 
     protected $auth_method = "bearer";
 
+    protected $redis_key = "jwt_reids_key";
+
     /**
      * @var array
      */
@@ -55,6 +57,10 @@ class JwtAuth
 
         $method = config('jwt.auth_method');
         if(!empty($method)) $this->auth_method = $method;
+
+        $redis_key = config('jwt.jwt_redis_key');
+
+        if(!empty($redis_key)) $this->redis_key = $redis_key;
     }
 
     /**
@@ -81,12 +87,12 @@ class JwtAuth
             throw  new AuthTokenEmptyException("Empty token");
         }
         $payload = null;
-
+        $this->token = $token;
 
         if (empty($this->algo)) {
             $payload = JWT::decode($token, $this->secret);
         } else {
-                $payload = JWT::decode($token, $this->secret, [$this->algo]);
+            $payload = JWT::decode($token, $this->secret, [$this->algo]);
         }
 
         if(empty($payload)) {
@@ -146,6 +152,14 @@ class JwtAuth
 
     public function getRefreshTtl() {
         return $this->refresh_ttl;
+    }
+
+    public function getToken() {
+        return $this->token;
+    }
+
+    public function getRedisKey() {
+        return $this->redis_key;
     }
 
 }

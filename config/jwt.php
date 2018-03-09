@@ -61,4 +61,6 @@ return [
 
     'auth_method'=>'bearer',
 
+    'jwt_redis_key' => 'jwt_redis_token_uid_',
+
 ];
