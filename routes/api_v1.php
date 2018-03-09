@@ -17,4 +17,4 @@
 $router->get('/welcome','ExampleController@welcome');
 $router->get('/getout','ExampleController@getout');
 $router->post('/login/email','JWTAuthController@emailLogin');
-$router->get('/token/refresh','JWTAuthController@refreshToken');
+$router->post('/token/refresh','JWTAuthController@refreshToken');

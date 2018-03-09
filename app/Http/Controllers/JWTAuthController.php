@@ -32,16 +32,15 @@ class JWTAuthController extends Controller
             $this->validate($request,[
                 'email' => 'required|email|max:255',
                 'password'=>'required',
+                'deviceid'=>'required',
             ]);
 
         } catch (ValidationException $e) {
             return $e->getResponse();
         }
 
-        $did = $request->headers->get('DeviceId');
-        if (empty($did)) {
-            return $this->error(HttpStatusCode::BAD_REQUEST,"Did not found");
-        }
+        $did = $request->get('deviceid');
+
         $uid = 2;
 
         $tokens = $this->generateNewToken(new JwtAuth($request),$uid,$did);
@@ -50,7 +49,7 @@ class JWTAuthController extends Controller
     }
 
     public function refreshToken(Request $request) {
-        $did = $request->headers->get('DeviceId');
+        $did = $request->get('deviceid');
         if (empty($did)) {
             return $this->error(HttpStatusCode::BAD_REQUEST,"Did not found");
         }
@@ -75,7 +74,6 @@ class JWTAuthController extends Controller
         if (empty($payload->did)) {
             return $this->error(HttpStatusCode::BAD_REQUEST,"Device id unknown");
         }
-
 
         $deviceId = $payload->did;
 
