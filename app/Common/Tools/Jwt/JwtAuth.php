@@ -1,5 +1,6 @@
 <?php
 namespace App\Common\Tools\Jwt;
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -29,6 +30,11 @@ class JwtAuth
     protected $algo;
 
     protected $auth_method = "bearer";
+
+    /**
+     * @var array
+     */
+
 
     public function __construct(Request $request)
     {
@@ -75,14 +81,11 @@ class JwtAuth
         }
         $payload = null;
 
-        try {
-            if (empty($this->algo)) {
-                $payload = JWT::decode($token, $this->secret);
-            } else {
+
+        if (empty($this->algo)) {
+            $payload = JWT::decode($token, $this->secret);
+        } else {
                 $payload = JWT::decode($token, $this->secret, [$this->algo]);
-            }
-        } catch (\Exception $exception){
-            throw new \UnexpectedValueException($exception->getMessage());
         }
 
         if(empty($payload)) {
@@ -91,7 +94,7 @@ class JwtAuth
         if(empty($payload->sub)) {
             throw new SubClaimNotFoundException("Empty sub claim");
         }
-        return $payload->sub;
+        return $payload;
     }
 
     private function validateAuthorizationHeader() {
@@ -127,7 +130,20 @@ class JwtAuth
         return $this->auth_method;
     }
 
-    public function makePayload($user_id,array $customClaims=[]) {
-        array_merge($customClaims,['sub'=>$user_id]);
+
+    public function newToken($uid) {
+        $payload = new PayloadFactory($this->ttl);
+        return JWT::encode($payload->makePayloadWithUserId($uid),$this->secret,$this->algo);
     }
+
+    public function newRefreshToken($uid,$userDeviceId) {
+        $payload = new PayloadFactory($this->refresh_ttl);
+        $payload->addClaim('did',$userDeviceId);
+        return JWT::encode($payload->makePayloadWithUserId($uid),$this->secret,$this->algo);
+    }
+
+    public function getRefreshTtl() {
+        return $this->refresh_ttl;
+    }
+
 }

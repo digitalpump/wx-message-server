@@ -2,39 +2,59 @@
 /**
  * Created by PhpStorm.
  * User: jeffrey
- * Date: 2018/3/8
- * Time: 22:27
+ * Date: 2018/3/4
+ * Time: 08:13
  */
 
-namespace App\Http\Middleware;
+namespace App\Http\Controllers;
 
 
+use App\Common\Tools\Jwt\JwtAuth;
+
+use Dotenv\Exception\ValidationException;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Redis;
 use App\Common\Tools\HttpStatusCode;
 use App\Common\Tools\Jwt\AuthHeaderNotFoundException;
 use App\Common\Tools\Jwt\AuthTokenEmptyException;
-use App\Common\Tools\Jwt\JwtAuth;
 use App\Common\Tools\Jwt\SubClaimNotFoundException;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
-use Closure;
-
-class JwtAuthenticate
+use Log;
+class JWTAuthController extends Controller
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
-    public function handle($request, Closure $next)
-    {
+
+    public function emailLogin(Request $request) {
+
+        try {
+            $this->validate($request,[
+                'email' => 'required|email|max:255',
+                'password'=>'required',
+            ]);
+
+        } catch (ValidationException $e) {
+            return $e->getResponse();
+        }
+
+        $uid = 2;
+        $jwtAuth = new JwtAuth($request);
+        $jwt_token = $jwtAuth->newToken($uid);
+        $refresh_token = $jwtAuth->newRefreshToken($uid,"IJysdfkyjklkhyiiii28");
+        //$jwt_token = with(new JwtAuth($request))->newToken(2);
+
+        $key = "refresh_token_user_".$uid;
+        Redis::setex($key,$jwtAuth->getRefreshTtl()*60,$refresh_token);
+
+        return $this->onAuthorized($refresh_token,$jwt_token);
+
+    }
+
+    public function refreshToken(Request $request) {
         $jwtAuth = new JwtAuth($request);
         try {
             $payload = $jwtAuth->authenticate();
-            $id = $payload->sub;
-            app('JwtUser')->setId($id);
         } catch (ExpiredException $e) {
             return $this->error(HttpStatusCode::REQUEST_TIMEOUT,$e->getMessage());
         } catch (SignatureInvalidException $exception) {
@@ -50,9 +70,13 @@ class JwtAuthenticate
         } catch (\UnexpectedValueException $exception) {
             return $this->error(HttpStatusCode::BAD_REQUEST,$exception->getMessage());
         }
-        return $next($request);
+
+        $deviceId = $payload->did;
+        $uid = $payload->sub;
+
     }
-    private function error($code,$info="") {
-        return response()->json(["message"=>$info],$code);
+
+    protected function onAuthorized($refreshToken,$token) {
+        return $this->success(['refresh_token'=>$refreshToken,'token'=>$token],'Authentication success');
     }
 }
