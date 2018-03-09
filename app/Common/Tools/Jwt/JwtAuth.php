@@ -1,5 +1,6 @@
 <?php
 namespace App\Common\Tools\Jwt;
+use Carbon\Carbon;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
@@ -136,10 +137,11 @@ class JwtAuth
         return JWT::encode($payload->makePayloadWithUserId($uid),$this->secret,$this->algo);
     }
 
-    public function newRefreshToken($uid,$userDeviceId) {
+    public function newRefreshToken($uid,$userDeviceId,$delay=10) {
         $payload = new PayloadFactory($this->refresh_ttl);
-        $payload->addClaim('did',$userDeviceId);
-        return JWT::encode($payload->makePayloadWithUserId($uid),$this->secret,$this->algo);
+        $nbf = Carbon::now()->addMinutes($delay)->timestamp;
+
+        return JWT::encode($payload->buildClaims(['did'=>$userDeviceId,'nbf'=>$nbf,'sub'=>$uid])->getClaims(),$this->secret,$this->algo);
     }
 
     public function getRefreshTtl() {

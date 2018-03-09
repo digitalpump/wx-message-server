@@ -26,6 +26,7 @@ use Log;
 class JWTAuthController extends Controller
 {
 
+    private $testUserDeviceId = "IJysdfkyjklkhyiiii28";
     public function emailLogin(Request $request) {
 
         try {
@@ -39,15 +40,9 @@ class JWTAuthController extends Controller
         }
 
         $uid = 2;
-        $jwtAuth = new JwtAuth($request);
-        $jwt_token = $jwtAuth->newToken($uid);
-        $refresh_token = $jwtAuth->newRefreshToken($uid,"IJysdfkyjklkhyiiii28");
-        //$jwt_token = with(new JwtAuth($request))->newToken(2);
 
-        $key = "refresh_token_user_".$uid;
-        Redis::setex($key,$jwtAuth->getRefreshTtl()*60,$refresh_token);
-
-        return $this->onAuthorized($refresh_token,$jwt_token);
+        $tokens = $this->generateNewToken(new JwtAuth($request),$uid,$this->testUserDeviceId);
+        return $this->onAuthorized($tokens);
 
     }
 
@@ -70,13 +65,32 @@ class JWTAuthController extends Controller
         } catch (\UnexpectedValueException $exception) {
             return $this->error(HttpStatusCode::BAD_REQUEST,$exception->getMessage());
         }
-
+        if (empty($payload->did)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"Device id unknown");
+        }
         $deviceId = $payload->did;
-        $uid = $payload->sub;
+        if($deviceId == $this->testUserDeviceId) {
+            $uid = $payload->sub;
+            $tokens = $this->generateNewToken($jwtAuth,$uid,$deviceId);
+            return $this->onAuthorized($tokens);
+        } else {
+            return $this->error(HttpStatusCode::UNAUTHORIZED,"Device error.");
+        }
 
     }
 
-    protected function onAuthorized($refreshToken,$token) {
-        return $this->success(['refresh_token'=>$refreshToken,'token'=>$token],'Authentication success');
+    private function generateNewToken($jwtAuth,$uid,$deviceId) {
+
+        $jwt_token = $jwtAuth->newToken($uid);
+
+        $refresh_token = $jwtAuth->newRefreshToken($uid,$deviceId);
+
+        $key = "refresh_token_user_".$uid;
+        Redis::setex($key,$jwtAuth->getRefreshTtl()*60,$refresh_token);
+        return ['token'=>$jwt_token,'refresh_token'=>$refresh_token];
+    }
+
+    protected function onAuthorized($tokens) {
+        return $this->success($tokens,'Authentication success');
     }
 }
