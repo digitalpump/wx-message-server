@@ -80,12 +80,13 @@ $app->middleware([
 | totally optional, so you are not required to uncomment this line.
 |
 */
+//Log service
+$app->register(App\Providers\LogServiceProvider::class);
 
 $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(App\Providers\EventServiceProvider::class);
-//Log service
-$app->register(App\Providers\LogServiceProvider::class);
+
 
 //Redis service
 $app->register(Illuminate\Redis\RedisServiceProvider::class);

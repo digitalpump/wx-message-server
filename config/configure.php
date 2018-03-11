@@ -7,3 +7,4 @@
  */
 $app->configure('app');
 $app->configure('jwt');
+$app->configure('weixin');

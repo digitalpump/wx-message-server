@@ -7,4 +7,5 @@
  */
 return [
     'log_channel' => env('APP_LOG_CHANNEL', 'jeff_channel'),
+    'jwt_redis_refresh_token_key' => 'jwt_refresh_token_uid_',
 ];

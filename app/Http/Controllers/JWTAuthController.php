@@ -11,6 +11,9 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\Jwt\JwtAuth;
 
+use App\Common\Tools\Jwt\PayloadFactory;
+use App\Common\Tools\RedisTools;
+use App\Common\Tools\WxTokenTools;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -26,20 +29,109 @@ use Log;
 class JWTAuthController extends Controller
 {
 
+    /**
+     * 微信App 或者小程序登录流程
+     *
+     * 1，客户端自已向微信发起并获取code
+     * 2, 用 code 向自己的服务器发起登录请求
+     * 3，自己的服务器通过code 向微信获取access_token,refresh_token 和 openid,unionid 等
+     *      https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
+     *
+     *    自己的服务器根据openid查寻或者创建本地用户信息
+     *      登录成功返回：微信（access_token,openid)
+     *           用户ID
+     *           用户本站认证token 和 refresh_token
+     * 4，客户端通过 openid 和 access_token 向微信获取用户详细信息
+     *     https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
+     *
+     * 5，客户端将获取到的用户信息注册到自己的服务器（有必要的话）
+     *
+     *
+     *
+     *
+     * App 重新授权登录接口
+     */
+    public function wxGetAccessToken(Request $request) {
+        //1, Get code from request
+        $wxCode = $request->get('wx_code');
+        $wxAccessToken = $request->get('wx_access_token');
+        $openid = $request->get('openid');
+        $deviceId = $request->get('device_id');
+        $isTokenLogin = $request->get('token_login');  //区分是否 access_token 登录
+
+        if (empty($deviceId)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"Device id required.");
+        }
+        $responseAccessToken = null;
+        if (empty($isTokenLogin)) {
+            if(empty($wxCode)) {
+                return $this->error(HttpStatusCode::BAD_REQUEST,"Code is required.");
+            }
+            try {
+                $responseAccessToken =  $this->wxGetAccessTokenByCode($wxCode);
+            } catch (\UnexpectedValueException $exception) {
+                return $this->error($exception->getCode(),$exception->getMessage());
+            } catch (\Exception $exception) {
+                return $this->error(HttpStatusCode::INTERNAL_SERVER_ERROR,$exception->getMessage());
+            }
+
+        }
+        if (empty($wxAccessToken) || empty($openid)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"AccessToken and openid are required.");
+        }
+
+
+        return $this->wxGetAccessTokenByToken($wxAccessToken,$openid);
+    }
+
+    private function authFromWeixinByToken($wxAccessToken,$openid) {
+
+    }
+    /**
+     *
+     *
+     * 客户端用access_token 刷新并登录  （假设用户已经获得授权，则下次登录时只需要验证access_token是否有效，无效则重新获取授权，有效则无需重新获得授权。）
+     * @param Request $request
+     */
+    private function wxGetAccessTokenByToken($access_token,$openid) {
+        //检查access_token 是否有效
+        //从数据库中查出 refresh_token
+        //用refresh_token 刷新token
+
+    }
+
+    private function wxGetAccessTokenByCode($code) {
+        $appid = config('weixin.appid');
+        $secret = config('weixin.secret');
+        if(empty($appid) || empty($secret)) {
+            throw new \UnexpectedValueException("Weixin configure not found",HttpStatusCode::EXPECTATION_FAILED);
+        }
+        $body = WxTokenTools::getAccessToken($appid,$secret,$code);
+        if(empty($body)){
+            throw new \UnexpectedValueException("Get access token server response body empty.",HttpStatusCode::NO_CONTENT);
+        }
+        return  \GuzzleHttp\json_decode($body);
+
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function emailLogin(Request $request) {
 
         try {
             $this->validate($request,[
                 'email' => 'required|email|max:255',
                 'password'=>'required',
-                'deviceid'=>'required',
+                'device_id'=>'required',
             ]);
 
         } catch (ValidationException $e) {
             return $e->getResponse();
         }
 
-        $did = $request->get('deviceid');
+        $did = $request->get('device_id');
 
         $uid = 2;
 
@@ -49,7 +141,7 @@ class JWTAuthController extends Controller
     }
 
     public function refreshToken(Request $request) {
-        $did = $request->get('deviceid');
+        $did = $request->get('device_id');
         if (empty($did)) {
             return $this->error(HttpStatusCode::BAD_REQUEST,"Did not found");
         }
@@ -99,15 +191,20 @@ class JWTAuthController extends Controller
      * @param $deviceId
      * @return array
      */
-    private function generateNewToken(JwtAuth $jwtAuth,$uid,$deviceId) {
+    private function generateNewToken(JwtAuth $jwtAuth,$uid,$deviceId,$openid="") {
 
-        $jwt_token = $jwtAuth->newToken($uid);
+        $token_ttl = config('app.token_ttl',60);
+        $tokenPayload = PayloadFactory::make()->setTTL($token_ttl)->buildClaims(['sub'=>$uid])->getClaims();
+        $jwt_token = $jwtAuth->encode($tokenPayload);
+        $delay = config('app.refresh_delay',5);
+        $refresh_ttl = config('app.refresh_token_ttl',60);
+        $nbf = Carbon::now()->addMinutes($delay)->timestamp;
+        $refreshTokenPayload = PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['did'=>$deviceId,'nbf'=>$nbf,'sub'=>$uid])->getClaims();
+        $refresh_token = $jwtAuth->encode($refreshTokenPayload);
 
-        $refresh_token = $jwtAuth->newRefreshToken($uid,$deviceId);
+        RedisTools::setex(config('app.jwt_redis_refresh_token_key','').$uid,$refresh_ttl,$refresh_token);
 
-        Redis::setex($jwtAuth->getRedisKey().$uid,$jwtAuth->getRefreshTtl()*60,$refresh_token);
-
-        return ['token'=>$jwt_token,'refresh_token'=>$refresh_token];
+        return ['token'=>$jwtAuth->getAuthorizationMethod().$jwt_token,'refresh_token'=>$jwtAuth->getAuthorizationMethod().$refresh_token];
     }
 
     protected function onAuthorized($tokens) {

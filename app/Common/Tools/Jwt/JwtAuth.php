@@ -1,11 +1,8 @@
 <?php
 namespace App\Common\Tools\Jwt;
-use Carbon\Carbon;
-use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Mockery\Exception;
 
 /**
  * Created by PhpStorm.
@@ -22,9 +19,6 @@ class JwtAuth
 
     protected $token;
 
-    protected $ttl = 60;
-
-    protected $refresh_ttl = 60;
 
     protected $secret = "V9JeffreysbVgqihxBUoBN4iSUXwUDwJE7";
 
@@ -32,7 +26,7 @@ class JwtAuth
 
     protected $auth_method = "bearer";
 
-    protected $redis_key = "jwt_reids_key";
+
 
     /**
      * @var array
@@ -58,9 +52,6 @@ class JwtAuth
         $method = config('jwt.auth_method');
         if(!empty($method)) $this->auth_method = $method;
 
-        $redis_key = config('jwt.jwt_redis_key');
-
-        if(!empty($redis_key)) $this->redis_key = $redis_key;
     }
 
     /**
@@ -81,18 +72,17 @@ class JwtAuth
             throw new AuthHeaderNotFoundException("Authorization header not found");
         }
 
-        $token = $this->parseAuthorizationHeader();
+        $this->token = $this->parseAuthorizationHeader();
 
-        if(empty($token)) {
+        if(empty($this->token)) {
             throw  new AuthTokenEmptyException("Empty token");
         }
         $payload = null;
-        $this->token = $token;
 
         if (empty($this->algo)) {
-            $payload = JWT::decode($token, $this->secret);
+            $payload = JWT::decode($this->token, $this->secret);
         } else {
-            $payload = JWT::decode($token, $this->secret, [$this->algo]);
+            $payload = JWT::decode($this->token, $this->secret, [$this->algo]);
         }
 
         if(empty($payload)) {
@@ -138,28 +128,13 @@ class JwtAuth
     }
 
 
-    public function newToken($uid) {
-        $payload = new PayloadFactory($this->ttl);
-        return JWT::encode($payload->makePayloadWithUserId($uid),$this->secret,$this->algo);
-    }
-
-    public function newRefreshToken($uid,$userDeviceId,$delay=10) {
-        $payload = new PayloadFactory($this->refresh_ttl);
-        $nbf = Carbon::now()->addMinutes($delay)->timestamp;
-
-        return JWT::encode($payload->buildClaims(['did'=>$userDeviceId,'nbf'=>$nbf,'sub'=>$uid])->getClaims(),$this->secret,$this->algo);
-    }
-
-    public function getRefreshTtl() {
-        return $this->refresh_ttl;
+    public function encode($payload) {
+        return JWT::encode($payload,$this->secret,$this->algo);
     }
 
     public function getToken() {
         return $this->token;
     }
 
-    public function getRedisKey() {
-        return $this->redis_key;
-    }
 
 }
