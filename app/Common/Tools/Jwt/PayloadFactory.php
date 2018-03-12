@@ -10,9 +10,9 @@ namespace App\Common\Tools\Jwt;
 
 class PayloadFactory
 {
-    public static function make($class_name="DefaultPayload"){
-        //$payload = new $class_name();
-        return  new DefaultPayload();
+    const class_path = "App\Common\Tools\Jwt";
+    public static function make($class_name = 'DefaultPayload') {
+        $abstract_class = static::class_path . '\\' . $class_name;
+        return  new $abstract_class;
     }
-
 }

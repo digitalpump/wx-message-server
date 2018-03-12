@@ -22,7 +22,7 @@ class JwtAuth
 
     protected $secret = "V9JeffreysbVgqihxBUoBN4iSUXwUDwJE7";
 
-    protected $algo;
+    protected $algo = "HS256";
 
     protected $auth_method = "bearer";
 
@@ -33,7 +33,7 @@ class JwtAuth
      */
 
 
-    public function __construct(Request $request)
+    public function __construct(Request $request = null)
     {
         $this->request = $request;
 
@@ -78,12 +78,16 @@ class JwtAuth
             throw  new AuthTokenEmptyException("Empty token");
         }
         $payload = null;
-
-        if (empty($this->algo)) {
-            $payload = JWT::decode($this->token, $this->secret);
-        } else {
-            $payload = JWT::decode($this->token, $this->secret, [$this->algo]);
+        try {
+            if (empty($this->algo)) {
+                $payload = JWT::decode($this->token, $this->secret);
+            } else {
+                $payload = JWT::decode($this->token, $this->secret, [$this->algo]);
+            }
+        } catch (\DomainException $exception) {
+            throw new \UnexpectedValueException($exception->getMessage());
         }
+
 
         if(empty($payload)) {
             throw new \UnexpectedValueException("Empty payload");

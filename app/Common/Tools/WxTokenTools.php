@@ -33,14 +33,20 @@ class WxTokenTools
             "errcode":40029,"errmsg":"invalid code"
         }
      */
-    public static function getAccessToken($appid,$secret,$code) {
+    public static function getAccessToken($appid,$secret,$code)
+    {
         $httpClient = new Client();
-        $response = $httpClient->request('GET',WxTokenTools::WX_ACCESS_TOKEN_URL
-            ,['query'=>['appid'=>$appid,'secret'=>$secret,'code'=>$code,'grant_type'=>'authorization_code']]);
-        if ($response->getStatusCode() != 200 ) {
+        try {
+
+            $response = $httpClient->request('GET', WxTokenTools::WX_ACCESS_TOKEN_URL
+                , ['query' => ['appid' => $appid, 'secret' => $secret, 'code' => $code, 'grant_type' => 'authorization_code']]);
+            if ($response->getStatusCode() != 200) {
+                return null;
+            }
+            return \GuzzleHttp\json_decode($response->getBody());
+        } catch (\Exception $exception) {
             return null;
         }
-        return $response->getBody();
     }
 
 
@@ -60,12 +66,17 @@ class WxTokenTools
     public static function refreshAccessToken($appid,$refreshToken) {
 
         $httpClient = new Client();
-        $response = $httpClient->request('GET',WxTokenTools::WX_REFRESH_TOKEN_URL
-            ,['query'=>['appid'=>$appid,'refresh_token'=>$refreshToken,'grant_type'=>'refresh_token']]);
-        if ($response->getStatusCode() != 200 ) {
+        try {
+            $response = $httpClient->request('GET',WxTokenTools::WX_REFRESH_TOKEN_URL
+                ,['query'=>['appid'=>$appid,'refresh_token'=>$refreshToken,'grant_type'=>'refresh_token']]);
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return \GuzzleHttp\json_decode($response->getBody());
+        } catch (\Exception $exception) {
+
             return null;
         }
-        return $response->getBody();
 
     }
 
@@ -93,14 +104,20 @@ class WxTokenTools
         }
     */
 
-    public static function userinfo($openid,$accessToken) {
+    public static function userinfo($openid,$accessToken)
+    {
         $httpClient = new Client();
-        $response = $httpClient->request('GET',WxTokenTools::WX_USERINFO_URL
-            ,['query'=>['openid'=>$openid,'access_token'=>$accessToken]]);
-        if ($response->getStatusCode() != 200 ) {
+        try {
+
+            $response = $httpClient->request('GET', WxTokenTools::WX_USERINFO_URL
+                , ['query' => ['openid' => $openid, 'access_token' => $accessToken]]);
+            if ($response->getStatusCode() != 200) {
+                return null;
+            }
+            return \GuzzleHttp\json_decode($response->getBody());
+        }catch (\Exception $exception) {
             return null;
         }
-        return $response->getBody();
     }
     /*
      * 验证access_token
@@ -116,11 +133,16 @@ class WxTokenTools
     */
     public static function auth($openid,$accessToken) {
         $httpClient = new Client();
-        $response = $httpClient->request('GET',WxTokenTools::WX_AUTH_URL
-            ,['query'=>['openid'=>$openid,'access_token'=>$accessToken]]);
-        if ($response->getStatusCode() != 200 ) {
+        try {
+            $response = $httpClient->request('GET',WxTokenTools::WX_AUTH_URL
+                ,['query'=>['openid'=>$openid,'access_token'=>$accessToken]]);
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return $response->getBody();
+        } catch (\Exception $exception) {
             return null;
         }
-        return $response->getBody();
+
     }
 }

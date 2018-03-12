@@ -59,7 +59,7 @@ return [
     'algo' => 'HS256',
 
 
-    'auth_method'=>'bearer',
+    'auth_method'=>'jeffr',
 
 
 ];

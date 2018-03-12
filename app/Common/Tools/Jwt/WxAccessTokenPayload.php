@@ -9,15 +9,15 @@
 namespace App\Common\Tools\Jwt;
 
 
-class RefreshTokenPayload extends Payload
+class WxAccessTokenPayload extends Payload
 {
     /**
      * @var array
      */
-    protected $defaultClaims = ['iat', 'exp', 'nbf', 'jti'];
+    protected $defaultClaims = ['iat', 'nbf', 'jti'];
     function getDefaultClaims()
     {
-        // TODO: Implement getDefaultClaims() method.
+        return $this->defaultClaims;
     }
 
 }

@@ -43,6 +43,13 @@ abstract class Payload implements IPayload
 
         return $this;
     }
+
+    public function addClaims($claims) {
+        if(empty($claims)) return;
+        foreach ($claims as $name=>$value) {
+            $this->claims[$name] = $value;
+        }
+    }
     /**
      * Build the default claims.
      *
