@@ -9,6 +9,7 @@
 namespace App\Common\Tools;
 
 use Illuminate\Support\Facades\Redis;
+use Log;
 class RedisTools
 {
 
@@ -21,7 +22,22 @@ class RedisTools
         $prefix  = config('app.wx_refresh_token_key_prefix','wx_refresh_token_');
         return $prefix.$did;
     }
+
+    public static function getWxSessionKeyName($uid) {
+        $prefix = config('app.wx_session_key_prefix','wx_session_key_');
+        return $prefix.$uid;
+    }
+
+    public static function setWxSesssionKey($uid,$value){
+        return Redis::set(static::getWxSessionKeyName($uid),$value);
+    }
+
+    public static function getWxSessionKey($uid) {
+        return Redis::get(static::getWxSessionKeyName($uid));
+    }
+
     public static function setex($key,$ttl_minutes,$value) {
+
         return Redis::setex($key,$ttl_minutes*60,$value);
     }
 

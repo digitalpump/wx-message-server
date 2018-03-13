@@ -100,6 +100,54 @@ class JWTAuthController extends Controller
         // return $this->wxGetAccessTokenByToken($wxAccessToken,$openid);
     }
 
+    public function wxMiniProgramLogin(Request $request) {
+        $wxCode = $request->get('wx_code');
+
+        $deviceId = $request->get('device_id');
+
+        if (empty($deviceId)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST, "Device id required.");
+        }
+        $responseAccessToken = null;
+
+        if (empty($wxCode)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST, "Code is required.");
+        }
+        try {
+            $responseAccessToken = $this->wxJsCodeToSession($wxCode);
+
+            if (!empty($responseAccessToken->errcode)) {  //微信服务器返回错误
+                return $this->error(HttpStatusCode::UNAUTHORIZED, $responseAccessToken->errmsg);
+            }
+
+
+
+            //注册并登录，获取用户信息
+            $result = UserTools::wxMiniProgramLogin($responseAccessToken->openid,$responseAccessToken->session_key,"");
+            $uid = $result['uid'];
+
+
+
+            if (empty($uid)) {
+                return $this->error(HttpStatusCode::UNAUTHORIZED,"User not exist.");
+            }
+
+            RedisTools::setWxSesssionKey($uid,$responseAccessToken->session_key);
+
+            return $this->newWxLoginToken($uid,$deviceId,$responseAccessToken->openid);
+            /*
+             *  $uid = UserTools->wxLogin($responseAccessToken)
+             *
+             */
+
+        } catch (\UnexpectedValueException $exception) {
+            return $this->error($exception->getCode(), $exception->getMessage());
+        } catch (\Exception $exception) {
+            return $this->error(HttpStatusCode::INTERNAL_SERVER_ERROR, $exception->getMessage());
+        }
+
+    }
+
 
     private function authFromWeixinByToken(Request $request)
     {
@@ -133,6 +181,19 @@ class JWTAuthController extends Controller
         }
         return $body;
 
+    }
+
+    private function wxJsCodeToSession($code) {
+        $appid = config('weixin.appid');
+        $secret = config('weixin.secret');
+        if (empty($appid) || empty($secret)) {
+            throw new \UnexpectedValueException("Weixin configure not found", HttpStatusCode::EXPECTATION_FAILED);
+        }
+        $body = WxTokenTools::jscode2Session($appid, $secret, $code);
+        if (empty($body)) {
+            throw new \UnexpectedValueException("Get access token server response body empty.", HttpStatusCode::NO_CONTENT);
+        }
+        return $body;
     }
 
 

@@ -27,6 +27,10 @@ class UserTools
         return ['uid'=>2,'role'=>4,'status'=>0];
     }
 
+    public static function wxMiniProgramLogin($openid,$session_key,$unionid) {
+        return ['uid'=>8,'role'=>4,'status'=>0];
+    }
+
     /**
      * @param $email
      * @param $password

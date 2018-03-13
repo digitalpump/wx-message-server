@@ -9,11 +9,11 @@
 return [
 
 
-    'appid' => 'wxc496505548ed228f',
+    'appid' => 'wxdfd474a204719893',
 
 
 
-    'secret' => 'c3d953d56cf61b8578c73b894468c18a',
+    'secret' => '30270ce9f2b7463e4720995cdc220c6c',
 
 
 ];

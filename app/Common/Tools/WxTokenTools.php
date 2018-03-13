@@ -18,6 +18,52 @@ class WxTokenTools
     const WX_REFRESH_TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/refresh_token";
     const WX_USERINFO_URL = "https://api.weixin.qq.com/sns/userinfo";
     const WX_AUTH_URL = "https://api.weixin.qq.com/sns/auth";
+    const WX_JSCODE2SESSION_URL = "https://api.weixin.qq.com/sns/jscode2session";
+
+
+
+    /*
+   //正常返回的JSON数据包
+       {
+       "openid": "OPENID",
+       "session_key": "SESSIONKEY",
+       }
+
+       //满足UnionID返回条件时，返回的JSON数据包
+           {
+               "openid": "OPENID",
+           "session_key": "SESSIONKEY",
+           "unionid": "UNIONID"
+       }
+       //错误时返回JSON数据包(示例为Code无效)
+           {
+               "errcode": 40029,
+           "errmsg": "invalid code"
+       }
+   */
+    /**
+     *
+     * @param $appid
+     * @param $secret
+     * @param $code
+     * @return mixed|null
+     */
+    public static function jscode2Session($appid,$secret,$code) {
+        $httpClient = new Client();
+        try {
+
+            $response = $httpClient->request('GET', WxTokenTools::WX_JSCODE2SESSION_URL
+                , ['query' => ['appid' => $appid, 'secret' => $secret, 'js_code' => $code, 'grant_type' => 'authorization_code']]);
+
+            if ($response->getStatusCode() != 200) {
+                return null;
+            }
+            Log::debug("@jscode2Session:".$response->getBody());
+            return \GuzzleHttp\json_decode($response->getBody());
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
     /*
      *
      *
@@ -37,9 +83,9 @@ class WxTokenTools
     {
         $httpClient = new Client();
         try {
-
             $response = $httpClient->request('GET', WxTokenTools::WX_ACCESS_TOKEN_URL
                 , ['query' => ['appid' => $appid, 'secret' => $secret, 'code' => $code, 'grant_type' => 'authorization_code']]);
+
             if ($response->getStatusCode() != 200) {
                 return null;
             }
@@ -147,4 +193,6 @@ class WxTokenTools
         }
 
     }
+
+
 }
