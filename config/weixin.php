@@ -9,11 +9,11 @@
 return [
 
 
-    'appid' => 'xxxxxyyyy',
+    'appid' => 'wxc496505548ed228f',
 
 
 
-    'secret' => 'xysdsfdsdfsdfsdfdsfsd',
+    'secret' => 'c3d953d56cf61b8578c73b894468c18a',
 
 
 ];

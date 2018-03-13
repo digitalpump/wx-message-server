@@ -131,7 +131,7 @@ class JWTAuthController extends Controller
         if (empty($body)) {
             throw new \UnexpectedValueException("Get access token server response body empty.", HttpStatusCode::NO_CONTENT);
         }
-        return body;
+        return $body;
 
     }
 

@@ -17,12 +17,12 @@ class UserTools
      */
     public static function wxLogin($wxAccessToken) {
         //TODO
-        $wxAccessToken->access_token;
-        $wxAccessToken->expires_in;
-        $wxAccessToken->refresh_token;
-        $wxAccessToken->openid;
-        $wxAccessToken->scope;
-        $wxAccessToken->unionid;
+        //$wxAccessToken->access_token;
+        //$wxAccessToken->expires_in;
+        //$wxAccessToken->refresh_token;
+        //$wxAccessToken->openid;
+        //$wxAccessToken->scope;
+        //$wxAccessToken->unionid;
 
         return ['uid'=>2,'role'=>4,'status'=>0];
     }

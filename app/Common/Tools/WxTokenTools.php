@@ -10,7 +10,7 @@ namespace App\Common\Tools;
 
 
 use GuzzleHttp\Client;
-
+use Log;
 class WxTokenTools
 {
 
@@ -43,6 +43,7 @@ class WxTokenTools
             if ($response->getStatusCode() != 200) {
                 return null;
             }
+            Log::debug("@getAccessToken:".$response->getBody());
             return \GuzzleHttp\json_decode($response->getBody());
         } catch (\Exception $exception) {
             return null;
@@ -72,6 +73,7 @@ class WxTokenTools
             if ($response->getStatusCode() != 200 ) {
                 return null;
             }
+            Log::debug("@refreshAccessToken:".$response->getBody());
             return \GuzzleHttp\json_decode($response->getBody());
         } catch (\Exception $exception) {
 
