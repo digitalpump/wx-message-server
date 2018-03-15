@@ -16,7 +16,10 @@ return [
     |
     */
 
-    'secret' => env('JWT_SECRET', 'V9JeffreysbVgqihxBUoBN4iSUXwUDwJE7'),
+    'secret' => env('JWT_SECRET', 'z4BfGXKq09Pd4vmo6pOCT2qDkdLfCiL3Vt6khtA4bKIFRSYcdlTiwmCMxZDZ0b35'),
+
+
+    'refresh_secret' => env('JWT_REFRESH_SECRET','UQ90hNCgq849p8gK6777X4jeH2uz6X17xUexD20STfg3B9BE3EnLuPHnx1Y4SxqE'),
 
     /*
     |--------------------------------------------------------------------------
@@ -60,6 +63,8 @@ return [
 
 
     'auth_method'=>'jeffr',
+
+    'refresh_header_name' => 'RefreshToken',
 
 
 ];

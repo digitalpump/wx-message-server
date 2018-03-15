@@ -7,3 +7,5 @@
  * Time: 07:16
  */
 $router->get('/hello','ExampleController@hello');
+$router->post('/weixin/decrypt','WxAuthController@decryptUserInfo');
+$router->post('/token/refresh','JWTAuthController@refreshToken');

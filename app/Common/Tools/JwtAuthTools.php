@@ -30,6 +30,14 @@ class JwtAuthTools
         return $this->jwtAuth->encode($payload);
     }
 
+    public function newRefreshToken(callable $callback) {
+        $payload = call_user_func($callback);
+        if(empty($payload)) {
+            return "";
+        }
+        return $this->jwtAuth->encode($payload,true);
+    }
+
     public function getAuthorizationMethod() {
         return $this->jwtAuth->getAuthorizationMethod();
     }

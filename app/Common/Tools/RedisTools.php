@@ -13,8 +13,8 @@ use Log;
 class RedisTools
 {
 
-    public static function getRefreshTokenKey($did) {
-        $prefix  = config('app.refresh_token_key_prefix','refresh_token_');
+    public static function getTokenKey($did) {
+        $prefix  = config('app.token_key_prefix','jwt_token_uid_');
         return $prefix.$did;
     }
 
@@ -45,12 +45,12 @@ class RedisTools
         return Redis::get($key);
     }
 
-    public static function setRefreshToken($did,$ttl_minutes,$value) {
-        return static::setex(static::getRefreshTokenKey($did),$ttl_minutes,$value);
+    public static function setToken($uid,$ttl_minutes,$value) {
+        return static::setex(static::getTokenKey($uid),$ttl_minutes,$value);
     }
 
-    public static function getRefreshToken($did) {
-        return Redis::get(static::getRefreshTokenKey($did));
+    public static function getToken($uid) {
+        return Redis::get(static::getTokenKey($uid));
     }
 
     public static function setWxRefreshToken($did,$ttl_minutes,$value) {

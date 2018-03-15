@@ -14,6 +14,7 @@ use App\Common\Tools\Jwt\AuthHeaderNotFoundException;
 use App\Common\Tools\Jwt\AuthTokenEmptyException;
 use App\Common\Tools\Jwt\JwtAuth;
 use App\Common\Tools\Jwt\SubClaimNotFoundException;
+use App\Common\Tools\RedisTools;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
@@ -33,8 +34,16 @@ class JwtAuthenticate
         $jwtAuth = new JwtAuth($request);
         try {
             $payload = $jwtAuth->authenticate();
-            $id = $payload->sub;
-            app('JwtUser')->setId($id);
+            if(empty($payload->sub)) {
+                return $this->error(HttpStatusCode::UNAUTHORIZED,"Bad user id.");
+            }
+            $tokenInRedis = RedisTools::getToken($payload->sub);
+            if($jwtAuth->getToken()!=$tokenInRedis) {
+                return $this->error(HttpStatusCode::UNAUTHORIZED,"Token expired.");
+            }
+            //$jwtAuth->getToken(); check token
+            app('JwtUser')->setId($payload->sub);
+
         } catch (ExpiredException $e) {
             return $this->error(HttpStatusCode::REQUEST_TIMEOUT,$e->getMessage());
         } catch (SignatureInvalidException $exception) {

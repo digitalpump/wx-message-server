@@ -24,9 +24,9 @@ class Controller extends BaseController
 
     private function response_json($info,$data,$code) {
         if(empty($data)) {
-            return response()->json(['message'=>$info,'data'=>new \stdClass()],$code);
+            return response()->json(['message'=>$info,'payload'=>new \stdClass()],$code);
         }
-        return response()->json(['message'=>$info,'data'=>$data],$code);
+        return response()->json(['message'=>$info,'payload'=>$data],$code);
     }
 
 }

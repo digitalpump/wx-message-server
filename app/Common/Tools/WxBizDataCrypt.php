@@ -15,6 +15,7 @@ class WxBizDataCrypt
     public static $IllegalAesKey = -41001;
     public static $IllegalIv = -41002;
     public static $IllegalBuffer = -41003;
+    public static $IllegalAppId = -41005;
     public static $DecodeBase64Error = -41004;
     private $appid;
     private $sessionKey;
@@ -55,7 +56,7 @@ class WxBizDataCrypt
         if(empty($dataObj)) return self::$IllegalBuffer;
         if( $dataObj->watermark->appid != $this->appid )
         {
-            return self::$IllegalBuffer;
+            return self::$IllegalAppId;
         }
         $data = $dataObj;
         return self::$OK;

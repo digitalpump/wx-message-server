@@ -27,7 +27,11 @@ class UserTools
         return ['uid'=>2,'role'=>4,'status'=>0];
     }
 
-    public static function wxMiniProgramLogin($openid,$session_key,$unionid) {
+    public static function wxMiniProgramLogin($responseAccessToken) {
+        //$responseAccessToken->openid
+        //$responseAccessToken->session_key
+        //$$responseAccessToken->unionid
+
         return ['uid'=>8,'role'=>4,'status'=>0];
     }
 
@@ -47,6 +51,10 @@ class UserTools
     }
 
     public static function updateWxTokens($wxOpenid,$newAccessToken,$newRefreshToken) {
+
+    }
+
+    public static function saveWxUserInfo($uid,$userinfo) {
 
     }
 }
