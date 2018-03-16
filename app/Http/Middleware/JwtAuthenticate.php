@@ -13,6 +13,7 @@ use App\Common\Tools\HttpStatusCode;
 use App\Common\Tools\Jwt\AuthHeaderNotFoundException;
 use App\Common\Tools\Jwt\AuthTokenEmptyException;
 use App\Common\Tools\Jwt\JwtAuth;
+use App\Common\Tools\Jwt\JwtConfigure;
 use App\Common\Tools\Jwt\SubClaimNotFoundException;
 use App\Common\Tools\RedisTools;
 use Firebase\JWT\ExpiredException;
@@ -31,7 +32,8 @@ class JwtAuthenticate
      */
     public function handle($request, Closure $next)
     {
-        $jwtAuth = new JwtAuth($request);
+        $jwtAuth = new JwtAuth();
+        $jwtAuth->setRequest($request)->setJwtConfigure(new JwtConfigure());
         try {
             $payload = $jwtAuth->authenticate();
             if(empty($payload->sub)) {
@@ -41,7 +43,7 @@ class JwtAuthenticate
             if($jwtAuth->getToken()!=$tokenInRedis) {
                 return $this->error(HttpStatusCode::UNAUTHORIZED,"Token expired.");
             }
-            //$jwtAuth->getToken(); check token
+
             app('JwtUser')->setId($payload->sub);
 
         } catch (ExpiredException $e) {

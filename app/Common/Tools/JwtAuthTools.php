@@ -10,16 +10,19 @@ namespace App\Common\Tools;
 
 
 use App\Common\Tools\Jwt\JwtAuth;
+use App\Common\Tools\Jwt\JwtConfigure;
 
 class JwtAuthTools
 {
     private $jwtAuth;
+    private $jwtConfigure;
     /*
      *
      */
     public function __construct()
     {
-        $this->jwtAuth = new JwtAuth();
+        $this->jwtConfigure = new JwtConfigure();
+        $this->jwtAuth = (new JwtAuth())->setJwtConfigure($this->jwtConfigure);
     }
 
     public function newToken(callable $callback) {
@@ -39,7 +42,7 @@ class JwtAuthTools
     }
 
     public function getAuthorizationMethod() {
-        return $this->jwtAuth->getAuthorizationMethod();
+        return $this->jwtConfigure->getAuthMethod();
     }
 
 }

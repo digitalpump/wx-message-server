@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\Jwt\JwtAuth;
 
+use App\Common\Tools\Jwt\JwtConfigure;
 use App\Common\Tools\Jwt\PayloadFactory;
 use App\Common\Tools\JwtAuthTools;
 use App\Common\Tools\RedisTools;
@@ -211,6 +212,33 @@ class JWTAuthController extends Controller
 
     }
 
+    private function validateWithOldToken(Request $request,$uid) {
+        $jwtAuth = new JwtAuth();
+        $jwtAuth->setJwtConfigure(new JwtConfigure())->setRequest($request);
+        try {
+            $jwtAuth->setIgnores(['exp']);
+            $payload = $jwtAuth->authenticate();
+            // Check if this token has expired.
+            Log::debug("exp=".$payload->exp);
+            if (isset($payload->exp) && (Carbon::yesterday()->timestamp >= $payload->exp)) {
+                Log::debug("@checkOldToken token expired");
+                return false;
+            }
+            if ($uid!=$payload->sub) return false;
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return false;
+        }
+        return true;
+    }
+    /**
+     * 刷新token接口
+     *
+     * @param Request $request
+     *      header "Authorization" 传入旧token
+     *      header "RefreshToken" 传入刷新token
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function refreshToken(Request $request)
     {
 
@@ -218,7 +246,8 @@ class JWTAuthController extends Controller
         if (empty($headerName)) {
             return $this->error(HttpStatusCode::NOT_FOUND, 'Header name config not found.');
         }
-        $jwtAuth = new JwtAuth($request);
+        $jwtAuth = new JwtAuth();
+        $jwtAuth->setJwtConfigure(new JwtConfigure())->setRequest($request);
         try {
             $payload = $jwtAuth->authenticate($headerName);
         } catch (ExpiredException $e) {
@@ -242,12 +271,10 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "User id not found");
         }
 
-        $uid = app('JwtUser')->getId();
 
-        if ($uid != $payload->sub) {
+        if (!$this->validateWithOldToken($request,$payload->sub)) {
             return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
         }
-
 
         $uid = $payload->sub;
 

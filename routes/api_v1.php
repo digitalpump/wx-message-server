@@ -19,3 +19,4 @@ $router->get('/getout','ExampleController@getout');
 $router->post('/login/email','JWTAuthController@emailLogin');
 $router->post('/login/weixin','JWTAuthController@wxLogin');
 $router->post('/login/miniprogram','JWTAuthController@wxMiniProgramLogin');
+$router->post('/token/refresh','JWTAuthController@refreshToken');

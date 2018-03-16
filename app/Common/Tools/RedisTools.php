@@ -9,7 +9,6 @@
 namespace App\Common\Tools;
 
 use Illuminate\Support\Facades\Redis;
-use Log;
 class RedisTools
 {
 
@@ -54,7 +53,7 @@ class RedisTools
     }
 
     public static function setWxRefreshToken($did,$ttl_minutes,$value) {
-        return static::setex(static::getWxRefreshTokenKey($did),$ttl_minutes,$value);
+        return Redis::setex(static::getWxRefreshTokenKey($did),$ttl_minutes,$value);
     }
 
     public static function getWxRefreshToken($did) {

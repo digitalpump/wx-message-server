@@ -1,6 +1,7 @@
 <?php
 namespace App\Common\Tools\Jwt;
-use Firebase\JWT\JWT;
+
+use App\Common\Tools\Jwt\Firebase\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -17,47 +18,11 @@ class JwtAuth
      */
     protected $request;
 
-    protected $token;
+    protected $jwtConfigure;
 
+    protected $ignores = [];
 
-    protected $secret = "V9JeffreysbVgqihxBUoBN4iSUXwUDwJE7";
-
-    protected $refresh_secret = "V6JeffreysbVgqihxBUoBN4iSUXwUDwJE8";
-
-    protected $algo = "HS256";
-
-    protected $auth_method = "bearer";
-
-
-
-    /**
-     * @var array
-     */
-
-
-    public function __construct(Request $request = null)
-    {
-        $this->request = $request;
-
-        $secret = config('jwt.secret');
-        if(!empty($secret)) $this->secret = $secret;
-
-        $refresh_secret = config('jwt.refresh_secret');
-        if(!empty($refresh_secret)) $this->refresh_secret = $refresh_secret;
-
-        $ttl = config('jwt.ttl');
-        if(!empty($ttl)) $this->ttl = intval($ttl);
-
-        $refresh_ttl = config('jwt.refresh_ttl');
-        if(!empty($refresh_ttl)) $this->refresh_ttl = $refresh_ttl;
-
-        $algo = config('jwt.algo');
-        if(!empty($algo)) $this->algo = $algo;
-
-        $method = config('jwt.auth_method');
-        if(!empty($method)) $this->auth_method = $method;
-
-    }
+    const DEFAULT_HEADER_NAME = "Authorization";
 
     /**
      * Set the request instance.
@@ -67,14 +32,35 @@ class JwtAuth
     public function setRequest(Request $request)
     {
         $this->request = $request;
-
         return $this;
     }
 
-    public function authenticate($headerName="authorization") {
+    public function setJwtConfigure(JwtConfigure $jwtConfigure) {
+        $this->jwtConfigure = $jwtConfigure;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getIgnores()
+    {
+        return $this->ignores;
+    }
+
+    /**
+     * @param array $ignores
+     */
+    public function setIgnores($ignores)
+    {
+        $this->ignores = $ignores;
+    }
+
+
+    public function authenticate($headerName=self::DEFAULT_HEADER_NAME) {
 
         if(!$this->validateAuthorizationHeader($headerName)) {
-            throw new AuthHeaderNotFoundException("Authorization header not found");
+            throw new AuthHeaderNotFoundException("$headerName header not found");
         }
 
         $this->token = $this->parseAuthorizationHeader($headerName);
@@ -84,12 +70,12 @@ class JwtAuth
         }
         $payload = null;
         try {
-            $secret = $headerName=='authorization'?$this->secret:$this->refresh_secret;
-            if (empty($this->algo)) {
-
-                $payload = JWT::decode($this->token, $secret);
+            $secret = $headerName==self::DEFAULT_HEADER_NAME?$this->getJwtConfigure()->getSecret():$this->getJwtConfigure()->getRefreshSecret();
+            $algo = $this->getJwtConfigure()->getAlgo();
+            if (empty($algo)) {
+                $payload = JWT::decode($this->token, $secret,[],$this->getIgnores());
             } else {
-                $payload = JWT::decode($this->token, $secret, [$this->algo]);
+                $payload = JWT::decode($this->token, $secret, [$algo],$this->getIgnores());
             }
         } catch (\DomainException $exception) {
             throw new \UnexpectedValueException($exception->getMessage());
@@ -105,12 +91,12 @@ class JwtAuth
         return $payload;
     }
 
-    private function validateAuthorizationHeader($headerName="authorization") {
+    private function validateAuthorizationHeader($headerName) {
         if(empty($this->request)) return false;
         $authHeader = $this->request->headers->get($headerName);
         if(empty($authHeader)) return false;
 
-        if (Str::startsWith(strtolower($authHeader), $this->getAuthorizationMethod())) {
+        if (Str::startsWith(strtolower($authHeader), $this->getJwtConfigure()->getAuthMethod())) {
             return true;
         }
         return false;
@@ -123,34 +109,34 @@ class JwtAuth
      *
      * @return string
      */
-    protected function parseAuthorizationHeader($headerName="authorization")
+    protected function parseAuthorizationHeader($headerName)
     {
-        return trim(str_ireplace($this->getAuthorizationMethod(), '', $this->request->header($headerName)));
-    }
-
-    /**
-     * Get the providers authorization method.
-     *
-     * @return string
-     */
-    public function getAuthorizationMethod()
-    {
-        return $this->auth_method;
+        return trim(str_ireplace($this->getJwtConfigure()->getAuthMethod(), '', $this->request->header($headerName)));
     }
 
 
     public function encode($payload,$refreshToken=false) {
-        if ($refreshToken) {
-            return JWT::encode($payload,$this->refresh_secret,$this->algo);
-        } else {
-            return JWT::encode($payload,$this->secret,$this->algo);
-        }
+        $secret = $refreshToken?$this->getJwtConfigure()->getRefreshSecret():$this->getJwtConfigure()->getSecret();
+        $algo = $this->getJwtConfigure()->getAlgo();
+        if(empty($algo)) return JWT::encode($payload,$secret);
+        return JWT::encode($payload,$secret,$algo);
+
     }
 
 
     public function getToken() {
         return $this->token;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getJwtConfigure()
+    {
+        return $this->jwtConfigure;
+    }
+
+
 
 
 }
