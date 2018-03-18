@@ -87,8 +87,16 @@ class WxTokenTools
             "errcode":40029,"errmsg":"invalid code"
         }
      */
-    public static function getAccessToken($appid,$secret,$code)
+
+
+    public static function getAccessToken(WeixinConfigure $weixinConfigure,$code)
     {
+        $appid = $weixinConfigure->getOfficialAccountAppId();
+        $secret = $weixinConfigure->getOfficialAccountSecret();
+        if(empty($appid) || empty($secret)) {
+            Log::err("Weixin configure for official account  not found.");
+            return null;
+        }
         $httpClient = new Client();
         try {
             $response = $httpClient->request('GET', WxTokenTools::WX_ACCESS_TOKEN_URL

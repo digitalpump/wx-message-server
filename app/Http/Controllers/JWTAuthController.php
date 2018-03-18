@@ -8,13 +8,8 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Common\Tools\Configure\WeixinConfigure;
 use App\Common\Tools\Jwt\JwtAuth;
-
-use App\Common\Tools\Configure\JwtConfigure;
 use App\Common\Tools\Jwt\PayloadFactory;
-use App\Common\Tools\JwtAuthTools;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\UserTools;
 use App\Common\Tools\WxTokenTools;
@@ -51,9 +46,10 @@ class JWTAuthController extends Controller
      * 5，客户端将获取到的用户信息注册到自己的服务器（有必要的话）
      *
      *
-     *
-     *
+
      * App 重新授权登录接口
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function wxLogin(Request $request)
     {
@@ -66,8 +62,11 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "Code is required.");
         }
         try {
-            $responseAccessToken = $this->wxGetAccessTokenByCode($wxCode);
+            $responseAccessToken = WxTokenTools::getAccessToken(app('WxConfig'),$wxCode);
 
+            if (empty($responseAccessToken)) {
+                return $this->error(HttpStatusCode::UNAUTHORIZED, "Get access token from weixin failed.");
+            }
             if (!empty($responseAccessToken->errcode)) {  //微信服务器返回错误
                 return $this->error(HttpStatusCode::UNAUTHORIZED, $responseAccessToken->errmsg);
             }
@@ -100,15 +99,14 @@ class JWTAuthController extends Controller
     {
         $wxCode = $request->get('wx_code');
 
-
         $responseAccessToken = null;
 
         if (empty($wxCode)) {
             return $this->error(HttpStatusCode::BAD_REQUEST, "Code is required.");
         }
         try {
-            $wxConfigure = new WeixinConfigure();
-            $responseAccessToken = WxTokenTools::jscode2Session($wxConfigure,$wxCode);
+
+            $responseAccessToken = WxTokenTools::jscode2Session(app('WxConfig'),$wxCode);
 
             if (empty($responseAccessToken)) {
                 return $this->error(HttpStatusCode::NO_CONTENT,"Jscode to session return null.");
@@ -128,7 +126,7 @@ class JWTAuthController extends Controller
                 return $this->error(HttpStatusCode::UNAUTHORIZED, "User not exist.");
             }
 
-            RedisTools::setWxSesssionKey($uid, $responseAccessToken->session_key);
+            //RedisTools::setWxSesssionKey($uid, $responseAccessToken->session_key);
 
             return $this->newWxLoginToken($uid, $responseAccessToken->openid);
             /*
@@ -164,20 +162,7 @@ class JWTAuthController extends Controller
 
     }
 
-    private function wxGetAccessTokenByCode($code)
-    {
-        $appid = config('weixin.appid');
-        $secret = config('weixin.secret');
-        if (empty($appid) || empty($secret)) {
-            throw new \UnexpectedValueException("Weixin configure not found", HttpStatusCode::EXPECTATION_FAILED);
-        }
-        $body = WxTokenTools::getAccessToken($appid, $secret, $code);
-        if (empty($body)) {
-            throw new \UnexpectedValueException("Get access token server response body empty.", HttpStatusCode::NO_CONTENT);
-        }
-        return $body;
 
-    }
 
 
     /**

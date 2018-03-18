@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Common\Tools\RedisTools;
-use App\Common\Tools\WxBizDataCrypt;
+use App\Models\OauthUsers;
 use Illuminate\Http\Request;
 use Log;
 
@@ -32,6 +31,11 @@ class ExampleController extends Controller
     public function hello(Request $request) {
         $uid = app('JwtUser')->getId();
 
+        /*$oauthUsers = OauthUsers::all();
+
+        foreach ($oauthUsers as $user) {
+            echo "user from=>" . $oauthUsers->from;
+        }*/
         return $this->success(['uid'=>$uid,'info'=>'hello lumen world']);
     }
 
