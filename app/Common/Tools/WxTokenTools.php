@@ -9,6 +9,7 @@
 namespace App\Common\Tools;
 
 
+use App\Common\Tools\Configure\WeixinConfigure;
 use GuzzleHttp\Client;
 use Log;
 class WxTokenTools
@@ -41,14 +42,21 @@ class WxTokenTools
            "errmsg": "invalid code"
        }
    */
+
     /**
-     *
-     * @param $appid
-     * @param $secret
+     * 微信小程序通过jscode 换取 session 接口
+     * @param WeixinConfigure $wConfigure
      * @param $code
      * @return mixed|null
      */
-    public static function jscode2Session($appid,$secret,$code) {
+    public static function jscode2Session(WeixinConfigure $wConfigure,$code) {
+        if(empty($wConfigure)) return null;
+        $secret = $wConfigure->getMiniProgramSecret();
+        $appid = $wConfigure->getMiniProgramAppId();
+        if(empty($secret) || empty($appid)) {
+            Log::err("Weixin configure for mini program not found.");
+            return null;
+        }
         $httpClient = new Client();
         try {
 

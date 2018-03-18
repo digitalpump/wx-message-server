@@ -8,7 +8,5 @@
 return [
     'log_channel' => env('APP_LOG_CHANNEL', 'jeff_channel'),
     'token_key_prefix' => 'jwt_token_uid_',
-    'token_ttl' => 60,
-    'refresh_token_delay' => 6,
-    'refresh_token_ttl' => 43200, //30 days
+
 ];

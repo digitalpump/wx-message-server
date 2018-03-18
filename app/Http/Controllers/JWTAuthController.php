@@ -9,9 +9,10 @@
 namespace App\Http\Controllers;
 
 
+use App\Common\Tools\Configure\WeixinConfigure;
 use App\Common\Tools\Jwt\JwtAuth;
 
-use App\Common\Tools\Jwt\JwtConfigure;
+use App\Common\Tools\Configure\JwtConfigure;
 use App\Common\Tools\Jwt\PayloadFactory;
 use App\Common\Tools\JwtAuthTools;
 use App\Common\Tools\RedisTools;
@@ -106,7 +107,12 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "Code is required.");
         }
         try {
-            $responseAccessToken = $this->wxJsCodeToSession($wxCode);
+            $wxConfigure = new WeixinConfigure();
+            $responseAccessToken = WxTokenTools::jscode2Session($wxConfigure,$wxCode);
+
+            if (empty($responseAccessToken)) {
+                return $this->error(HttpStatusCode::NO_CONTENT,"Jscode to session return null.");
+            }
 
             if (!empty($responseAccessToken->errcode)) {  //微信服务器返回错误
                 return $this->error(HttpStatusCode::UNAUTHORIZED, $responseAccessToken->errmsg);
@@ -173,20 +179,6 @@ class JWTAuthController extends Controller
 
     }
 
-    private function wxJsCodeToSession($code)
-    {
-        $appid = config('weixin.appid');
-        $secret = config('weixin.secret');
-        if (empty($appid) || empty($secret)) {
-            throw new \UnexpectedValueException("Weixin configure not found", HttpStatusCode::EXPECTATION_FAILED);
-        }
-        $body = WxTokenTools::jscode2Session($appid, $secret, $code);
-        if (empty($body)) {
-            throw new \UnexpectedValueException("Get access token server response body empty.", HttpStatusCode::NO_CONTENT);
-        }
-        return $body;
-    }
-
 
     /**
      * @param Request $request
@@ -212,17 +204,27 @@ class JWTAuthController extends Controller
 
     }
 
-    private function validateWithOldToken(Request $request,$uid) {
+    /**
+     *
+     * 刷新token时除了解码传过来的刷新Token，还要检查旧的token（虽然已经访问过期），但是利用它来效验刷新token，增强安全性。
+     * 旧的token的效验生生存期是24小时。
+     * @param Request $request
+     * @param $uid
+     * @param boolean $checkExpireTime 是否检查旧token的有效期
+     * @return bool
+     */
+    private function validateWithOldToken(Request $request,$uid,$checkExpireTime = false) {
         $jwtAuth = new JwtAuth();
-        $jwtAuth->setJwtConfigure(new JwtConfigure())->setRequest($request);
+        $jwtAuth->setJwtConfigure(app('JwtConfig'))->setRequest($request);
         try {
             $jwtAuth->setIgnores(['exp']);
             $payload = $jwtAuth->authenticate();
-            // Check if this token has expired.
-            Log::debug("exp=".$payload->exp);
-            if (isset($payload->exp) && (Carbon::yesterday()->timestamp >= $payload->exp)) {
-                Log::debug("@checkOldToken token expired");
-                return false;
+            if ($checkExpireTime) {
+                $passed_time = Carbon::now()->subHours(24)->timestamp;
+                if (isset($payload->exp) && ($passed_time > $payload->exp)) {
+                    Log::debug("@validateWithOldToken token expired");
+                    return false;
+                }
             }
             if ($uid!=$payload->sub) return false;
         } catch (\Exception $e) {
@@ -231,6 +233,8 @@ class JWTAuthController extends Controller
         }
         return true;
     }
+
+
     /**
      * 刷新token接口
      *
@@ -241,13 +245,12 @@ class JWTAuthController extends Controller
      */
     public function refreshToken(Request $request)
     {
-
-        $headerName = config('jwt.refresh_header_name');
+        $headerName = app('JwtConfig')->getRefreshTokenHeaderName();
         if (empty($headerName)) {
             return $this->error(HttpStatusCode::NOT_FOUND, 'Header name config not found.');
         }
         $jwtAuth = new JwtAuth();
-        $jwtAuth->setJwtConfigure(new JwtConfigure())->setRequest($request);
+        $jwtAuth->setJwtConfigure(app('JwtConfig'))->setRequest($request);
         try {
             $payload = $jwtAuth->authenticate($headerName);
         } catch (ExpiredException $e) {
@@ -271,9 +274,12 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "User id not found");
         }
 
+        //TODO 可根据用户具体情况，决定是否开启对旧的token的验证
 
-        if (!$this->validateWithOldToken($request,$payload->sub)) {
-            return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
+        if(true) {
+            if (!$this->validateWithOldToken($request,$payload->sub)) {
+                return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
+            }
         }
 
         $uid = $payload->sub;
@@ -315,11 +321,12 @@ class JWTAuthController extends Controller
      */
     private function newNormallyToken($uid)
     {
-        $jwtAuthTools = new JwtAuthTools();
-        $token = $this->generateNewToken($jwtAuthTools, $uid);
-        $refresh_token = $this->generateNewRefreshToken($jwtAuthTools, $uid);
-        return $this->onAuthorized(['token' => $jwtAuthTools->getAuthorizationMethod() . $token
-            , 'refresh_token' => $jwtAuthTools->getAuthorizationMethod() . $refresh_token]);
+        $jwtAuth = new JwtAuth();
+        $jwtAuth->setJwtConfigure(app('JwtConfig'));
+        $token = $this->generateNewToken($jwtAuth, $uid);
+        $refresh_token = $this->generateNewRefreshToken($jwtAuth, $uid);
+        return $this->onAuthorized(['token' => app('JwtConfig')->getAuthMethod() . $token
+            , 'refresh_token' => app('JwtConfig')->getAuthMethod() . $refresh_token]);
     }
 
 
@@ -332,44 +339,64 @@ class JWTAuthController extends Controller
      */
     private function newWxLoginToken($uid, $openid)
     {
-        $jwtAuthTools = new JwtAuthTools();
-        $token = $this->generateNewToken($jwtAuthTools, $uid);
-        $refresh_token = $this->generateNewWxRefreshToken($jwtAuthTools, $uid, $openid);
-        return $this->onAuthorized(['token' => $jwtAuthTools->getAuthorizationMethod() . $token
-            , 'refresh_token' => $jwtAuthTools->getAuthorizationMethod() . $refresh_token]);
+        $jwtAuth = new JwtAuth();
+        $jwtAuth->setJwtConfigure(app('JwtConfig'));
+        $token = $this->generateNewToken($jwtAuth, $uid);
+        $refresh_token = $this->generateNewWxRefreshToken($jwtAuth, $uid, $openid);
+        return $this->onAuthorized(['token' => app('JwtConfig')->getAuthMethod() . $token
+            , 'refresh_token' => app('JwtConfig')->getAuthMethod() . $refresh_token]);
 
     }
 
 
-    private function generateNewToken($jwtAuthTools, $uid)
+    /**
+     * 生成新的token 接口
+     * @param JwtAuth $jwtAuth
+     * @param $uid
+     * @return string
+     */
+    private function generateNewToken(JwtAuth $jwtAuth, $uid)
     {
-        $token_ttl = config('app.token_ttl', 60);
-        $token =  $jwtAuthTools->newToken(function () use ($uid,$token_ttl) {
+        $token_ttl = app('JwtConfig')->getTokenTtl();
+        $token =  $jwtAuth->encode(function () use ($uid,$token_ttl) {
             return PayloadFactory::make()->setTTL($token_ttl)->buildClaims(['sub' => $uid])->getClaims();
-        });
+        },false);
+        if(empty($token)) return "";
         RedisTools::setToken($uid,$token_ttl,$token);
         return $token;
     }
 
-    private function generateNewRefreshToken($jwtAuthTools, $uid)
+    /**
+     * 生成新的刷新token接口
+     * @param JwtAuth $jwtAuth
+     * @param $uid
+     * @return string
+     */
+    private function generateNewRefreshToken(JwtAuth $jwtAuth, $uid)
     {
-        $refresh_ttl = config('app.refresh_token_ttl', 2160);
-        return $jwtAuthTools->newRefreshToken(function () use ($uid, $refresh_ttl) {
-            $delay = config('app.refresh_token_delay', 5);
-
-            $nbf = Carbon::now()->addMinutes($delay)->timestamp;
+        $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
+        $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
+        return $jwtAuth->encode(function () use ($uid, $refresh_ttl,$refresh_delay) {
+            $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
             return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['nbf' => $nbf, 'sub' => $uid])->getClaims();
-        });
+        },true);
 
     }
 
-    private function generateNewWxRefreshToken($jwtAuthTools, $uid, $openid)
+    /**
+     * 生成新的微信刷新token接口
+     * @param JwtAuth $jwtAuth
+     * @param $uid
+     * @param $openid
+     * @return string
+     */
+    private function generateNewWxRefreshToken(JwtAuth $jwtAuth, $uid, $openid)
     {
-        $refresh_ttl = config('app.refresh_token_ttl', 2160);
-        return $jwtAuthTools->newRefreshToken(function () use ($uid, $openid, $refresh_ttl) {
-            $delay = config('app.refresh_token_delay', 5);
+        $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
+        $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
 
-            $nbf = Carbon::now()->addMinutes($delay)->timestamp;
+        return $jwtAuth->encode(function () use ($uid, $openid, $refresh_ttl,$refresh_delay) {
+            $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
             return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['openid' => $openid, 'nbf' => $nbf, 'sub' => $uid])->getClaims();
         });
 

@@ -6,14 +6,11 @@
  * Time: 21:44
  */
 
-namespace App\Common\Tools\Jwt;
+namespace App\Common\Tools\Configure;
 
 
 class JwtConfigure
 {
-
-    private $token;
-
 
     private $secret = "V9JeffreysbVgqihxBUoBN4iSUXwUDwJE7";
 
@@ -23,9 +20,13 @@ class JwtConfigure
 
     private $auth_method = "bearer";
 
-    private $token_ttl;
+    private $token_ttl = 60;
 
-    private $refresh_ttl;
+    private $refresh_token_ttl = 20160;
+
+    private $refresh_token_delay = 6;
+
+    private $refresh_token_header_name = "refreshtoken";
 
     public function __construct()
     {
@@ -39,22 +40,20 @@ class JwtConfigure
         if(!empty($ttl)) $this->token_ttl = intval($ttl);
 
         $refresh_ttl = config('jwt.refresh_ttl');
-        if(!empty($refresh_ttl)) $this->refresh_ttl = $refresh_ttl;
+        if(!empty($refresh_ttl)) $this->refresh_token_ttl = $refresh_ttl;
+
+        $refresh_delay = config('jwt.refresh_delay');
+        if(!empty($refresh_delay)) $this->refresh_token_delay = $refresh_delay;
 
         $algo = config('jwt.algo');
         if(!empty($algo)) $this->algo = $algo;
-
         $method = config('jwt.auth_method');
         if(!empty($method)) $this->auth_method = $method;
+        //'refresh_header_name' => 'RefreshToken',
+        $header_name = config('jwt.refresh_header_name');
+        if(!empty($header_name)) $this->refresh_token_header_name = $header_name;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getToken()
-    {
-        return $this->token;
-    }
 
     /**
      * @return mixed|string
@@ -99,12 +98,26 @@ class JwtConfigure
     /**
      * @return mixed
      */
-    public function getRefreshTtl()
+    public function getRefreshTokenTtl()
     {
-        return $this->refresh_ttl;
+        return $this->refresh_token_ttl;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getRefreshTokenDelay()
+    {
+        return $this->refresh_token_delay;
+    }
 
+    /**
+     * @return mixed|string
+     */
+    public function getRefreshTokenHeaderName()
+    {
+        return $this->refresh_token_header_name;
+    }
 
 
 }

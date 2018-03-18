@@ -27,11 +27,14 @@ class WxAuthController extends Controller
 
         $session_key = RedisTools::getWxSessionKey($uid);
 
-        $appid = config('weixin.appid');
+        $appid = app('WxConfig')->getMiniProgramAppId();
+        if(empty($appid)) {
+            return $this->error(HttpStatusCode::NO_CONTENT,"Weixin appid not found in configure");
+        }
         $pc = new WxBizDataCrypt($appid,$session_key);
         $data = "";
         $errCode = $pc->decryptData($encryptedData, $iv, $data);
-        Log::debug("errCode=".$errCode);
+
         if ($errCode !=0 ) {
             return $this->error(HttpStatusCode::UNAUTHORIZED,'Decrypt data failed.' . $errCode);
         }

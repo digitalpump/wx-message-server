@@ -58,6 +58,8 @@ return [
     | for possible values
     |
     */
+    'refresh_delay' => 6,  // 6 minutes later
+
 
     'algo' => 'HS256',
 
@@ -65,6 +67,7 @@ return [
     'auth_method'=>'jeffr',
 
     'refresh_header_name' => 'RefreshToken',
+
 
 
 ];

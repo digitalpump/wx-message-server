@@ -4,7 +4,7 @@ namespace App\Common\Tools\Jwt;
 use App\Common\Tools\Jwt\Firebase\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use App\Common\Tools\Configure\JwtConfigure;
 /**
  * Created by PhpStorm.
  * User: jeffrey
@@ -21,6 +21,8 @@ class JwtAuth
     protected $jwtConfigure;
 
     protected $ignores = [];
+
+    private $token;
 
     const DEFAULT_HEADER_NAME = "Authorization";
 
@@ -115,7 +117,11 @@ class JwtAuth
     }
 
 
-    public function encode($payload,$refreshToken=false) {
+    public function encode(callable $callback,$refreshToken=false) {
+        $payload = call_user_func($callback);
+        if (empty($payload)) {
+            return "";
+        }
         $secret = $refreshToken?$this->getJwtConfigure()->getRefreshSecret():$this->getJwtConfigure()->getSecret();
         $algo = $this->getJwtConfigure()->getAlgo();
         if(empty($algo)) return JWT::encode($payload,$secret);
