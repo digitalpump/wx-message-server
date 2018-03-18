@@ -118,9 +118,10 @@ class JWTAuthController extends Controller
 
 
             //注册并登录，获取用户信息
-            $result = UserTools::wxMiniProgramLogin($responseAccessToken);
-            $uid = $result['uid'];
+            $ip = jf_get_ip();
 
+            $result = UserTools::wxMiniProgramLogin($responseAccessToken,$ip);
+            $uid = $result['uid'];
 
             if (empty($uid)) {
                 return $this->error(HttpStatusCode::UNAUTHORIZED, "User not exist.");
@@ -236,6 +237,7 @@ class JWTAuthController extends Controller
         }
         $jwtAuth = new JwtAuth();
         $jwtAuth->setJwtConfigure(app('JwtConfig'))->setRequest($request);
+
         try {
             $payload = $jwtAuth->authenticate($headerName);
         } catch (ExpiredException $e) {
@@ -254,18 +256,21 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, $exception->getMessage());
         }
 
-
         if (empty($payload->sub)) {
             return $this->error(HttpStatusCode::BAD_REQUEST, "User id not found");
         }
 
+        $tokenInCache = RedisTools::getRefreshToken($payload->sub);
+        if ($tokenInCache!=$jwtAuth->getToken()) {
+           return $this->error(HttpStatusCode::BAD_REQUEST,"Refresh token expired(a new refresh token has published).");
+        }
         //TODO 可根据用户具体情况，决定是否开启对旧的token的验证
 
-        if(true) {
-            if (!$this->validateWithOldToken($request,$payload->sub)) {
-                return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
-            }
+
+        if (!$this->validateWithOldToken($request,$payload->sub,false)) {
+            return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
         }
+
 
         $uid = $payload->sub;
 
@@ -276,6 +281,7 @@ class JWTAuthController extends Controller
             return $this->newNormallyToken($uid);
         } else {
 
+            /*
             //读取用户信息，获得微信刷新token ,用户权限等
             $wxRefreshToken = UserTools::getWxRefreshToken($payload->openid);
             if (empty($wxRefreshToken)) {
@@ -290,9 +296,10 @@ class JWTAuthController extends Controller
             if (!empty($wxResponse->errcode)) return $this->error(HttpStatusCode::GONE, $wxRefreshToken->errmsg);
 
             UserTools::updateWxTokens($wxResponse->openid, $wxResponse->access_token, $wxResponse->refresh_token);
+            */
 
             //生成新的微信登录token 和 refresh_token
-            return $this->newWxLoginToken($uid, $wxResponse->openid);
+            return $this->newWxLoginToken($uid, $payload->openid);
         }
 
 
@@ -361,11 +368,14 @@ class JWTAuthController extends Controller
     {
         $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
         $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
-        return $jwtAuth->encode(function () use ($uid, $refresh_ttl,$refresh_delay) {
+        $token = $jwtAuth->encode(function () use ($uid, $refresh_ttl,$refresh_delay) {
             $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
             return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['nbf' => $nbf, 'sub' => $uid])->getClaims();
         },true);
 
+        if(empty($token)) return $token;
+        RedisTools::setRefreshToken($uid,$refresh_ttl,$token);
+        return $token;
     }
 
     /**
@@ -380,11 +390,13 @@ class JWTAuthController extends Controller
         $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
         $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
 
-        return $jwtAuth->encode(function () use ($uid, $openid, $refresh_ttl,$refresh_delay) {
+        $token = $jwtAuth->encode(function () use ($uid, $openid, $refresh_ttl,$refresh_delay) {
             $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
             return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['openid' => $openid, 'nbf' => $nbf, 'sub' => $uid])->getClaims();
-        });
-
+        },true);
+        if(empty($token)) return $token;
+        RedisTools::setRefreshToken($uid,$refresh_ttl,$token);
+        return $token;
     }
 
 

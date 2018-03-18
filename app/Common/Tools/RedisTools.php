@@ -17,23 +17,12 @@ class RedisTools
         return $prefix.$did;
     }
 
-    public static function getWxRefreshTokenKey($did) {
-        $prefix  = config('app.wx_refresh_token_key_prefix','wx_refresh_token_');
+    public static function getRefreshTokenKey($did) {
+        $prefix  = config('app.refresh_token_key_prefix','jwt_refresh_token_');
         return $prefix.$did;
     }
 
-    public static function getWxSessionKeyName($uid) {
-        $prefix = config('app.wx_session_key_prefix','wx_session_key_');
-        return $prefix.$uid;
-    }
 
-    public static function setWxSesssionKey($uid,$value){
-        return Redis::set(static::getWxSessionKeyName($uid),$value);
-    }
-
-    public static function getWxSessionKey($uid) {
-        return Redis::get(static::getWxSessionKeyName($uid));
-    }
 
     public static function setex($key,$ttl_minutes,$value) {
 
@@ -52,12 +41,12 @@ class RedisTools
         return Redis::get(static::getTokenKey($uid));
     }
 
-    public static function setWxRefreshToken($did,$ttl_minutes,$value) {
-        return Redis::setex(static::getWxRefreshTokenKey($did),$ttl_minutes,$value);
+    public static function setRefreshToken($did,$ttl_minutes,$value) {
+        return Redis::setex(static::getRefreshTokenKey($did),$ttl_minutes,$value);
     }
 
-    public static function getWxRefreshToken($did) {
-        return Redis::get(static::getWxRefreshTokenKey($did));
+    public static function getRefreshToken($did) {
+        return Redis::get(static::getRefreshTokenKey($did));
     }
 
 }

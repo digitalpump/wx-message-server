@@ -11,6 +11,8 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\HttpStatusCode;
 use App\Common\Tools\UserTools;
+use App\Models\OauthUsers;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\WxBizDataCrypt;
@@ -25,7 +27,12 @@ class WxAuthController extends Controller
 
         if(empty($encryptedData)) return $this->error(HttpStatusCode::BAD_REQUEST,"参数错误！data not found");
 
-        $session_key = RedisTools::getWxSessionKey($uid);
+        $session_key = UserTools::getWxMiniProgramSessionKeyById($uid);
+
+
+        if (empty($session_key)) {
+            return $this->error(HttpStatusCode::NOT_FOUND,"Session key not found");
+        }
 
         $appid = app('WxConfig')->getMiniProgramAppId();
         if(empty($appid)) {
@@ -40,7 +47,7 @@ class WxAuthController extends Controller
         }
         $userinfo['nickName'] = $data->nickName;
         $userinfo['avatarUrl'] = $data->avatarUrl;
-        UserTools::saveWxUserInfo($uid,$data);
+        UserTools::updateUserWithInfoFromWx($uid,$data);
         return $this->success(['info'=>'Success','userinfo'=>$userinfo]);
 
     }

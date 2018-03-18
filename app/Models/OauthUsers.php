@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class OauthUsers extends Model
 {
+    const FROM_WX_MINI_PROGRAM = "miniprogram";
+    const FROM_WX_APP = "wxapp";
+    const FROM_WX_WEB = "wxweb";
+
     const UPDATED_AT = 'last_login_time';
     protected $table = "crs_oauth_users";
     /*

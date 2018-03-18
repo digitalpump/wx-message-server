@@ -9,9 +9,12 @@
 namespace App\Common\Tools\Jwt;
 
 
+use App\Models\Users;
+
 class JwtUser
 {
     private $id;
+    private $user;
     public function __construct($id = 0)
     {
         if(!empty($id)) $this->id = $id;
@@ -22,6 +25,13 @@ class JwtUser
 
     public function getId() {
         return $this->id;
+    }
+
+    public function getUser() {
+        if(empty($this->user)) {
+            $this->user = Users::find($this->id);
+        }
+        return $this->user;
     }
 
 }
