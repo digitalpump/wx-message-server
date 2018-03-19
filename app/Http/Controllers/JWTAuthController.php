@@ -270,9 +270,7 @@ class JWTAuthController extends Controller
         }
 
         $tokenInCache = RedisTools::getRefreshToken($payload->sub);
-        Log::debug("uid=" . $payload->sub);
-        Log::debug("refresh token in redis:" . $tokenInCache);
-        Log::debug("refresh token in jwtAu:" . $jwtAuth->getToken());
+
         if ($tokenInCache!=$jwtAuth->getToken()) {
            return $this->error(HttpStatusCode::BAD_REQUEST,"Refresh token expired(a new refresh token has published).");
         }
