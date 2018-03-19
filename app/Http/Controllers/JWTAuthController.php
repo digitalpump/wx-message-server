@@ -261,42 +261,25 @@ class JWTAuthController extends Controller
         }
 
         $tokenInCache = RedisTools::getRefreshToken($payload->sub);
+        Log::debug("uid=" . $payload->sub);
+        Log::debug("refresh token in redis:" . $tokenInCache);
+        Log::debug("refresh token in jwtAu:" . $jwtAuth->getToken());
         if ($tokenInCache!=$jwtAuth->getToken()) {
            return $this->error(HttpStatusCode::BAD_REQUEST,"Refresh token expired(a new refresh token has published).");
         }
-        //TODO 可根据用户具体情况，决定是否开启对旧的token的验证
+        //TODO 可根据用户具体情况，决定是否开启对旧的token 过期的验证
 
 
         if (!$this->validateWithOldToken($request,$payload->sub,false)) {
             return $this->error(HttpStatusCode::UNAUTHORIZED, "验证用户ID失败");
         }
 
-
         $uid = $payload->sub;
-
-        //TODO 检查用户权限是否还在？by uid or by openid
 
         if (empty($payload->openid)) {
             // 生成新的普通账号密码登录token 和 refresh_token
             return $this->newNormallyToken($uid);
         } else {
-
-            /*
-            //读取用户信息，获得微信刷新token ,用户权限等
-            $wxRefreshToken = UserTools::getWxRefreshToken($payload->openid);
-            if (empty($wxRefreshToken)) {
-                return $this->error(HttpStatusCode::GONE, "Weixin refresh token gone.");
-            }
-
-            //向微信服务发出刷新token请求
-            $wxResponse = WxTokenTools::refreshAccessToken($payload->openid, $wxRefreshToken);
-
-            if (empty($wxResponse)) return $this->error(HttpStatusCode::INTERNAL_SERVER_ERROR, "Weixin server error.");
-
-            if (!empty($wxResponse->errcode)) return $this->error(HttpStatusCode::GONE, $wxRefreshToken->errmsg);
-
-            UserTools::updateWxTokens($wxResponse->openid, $wxResponse->access_token, $wxResponse->refresh_token);
-            */
 
             //生成新的微信登录token 和 refresh_token
             return $this->newWxLoginToken($uid, $payload->openid);

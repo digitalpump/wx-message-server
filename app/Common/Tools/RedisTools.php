@@ -42,11 +42,11 @@ class RedisTools
     }
 
     public static function setRefreshToken($did,$ttl_minutes,$value) {
-        return Redis::setex(static::getRefreshTokenKey($did),$ttl_minutes,$value);
+        return static::setex(static::getRefreshTokenKey($did),$ttl_minutes,$value);
     }
 
     public static function getRefreshToken($did) {
-        return Redis::get(static::getRefreshTokenKey($did));
+        return static::get(static::getRefreshTokenKey($did));
     }
 
 }

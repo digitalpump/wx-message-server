@@ -32,6 +32,14 @@ class UserTools
         return ['uid'=>2,'role'=>4,'status'=>0];
     }
 
+    /**
+     * 小程序用户数据库注册登录接口
+     * @param $responseAccessToken  微信小程序code换取 session 返回数据
+     * @param string $ip
+     * @param int $uid
+     * @param bool $bind            是否绑定原有用户
+     * @return array|null
+     */
     public static function wxMiniProgramLogin($responseAccessToken,$ip = "",$uid=0,$bind=false) {
         if(empty($responseAccessToken)) return null;
         if(empty($responseAccessToken->openid)) {
