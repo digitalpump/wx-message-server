@@ -205,8 +205,17 @@ class JWTAuthController extends Controller
         try {
             $jwtAuth->setIgnores(['exp']);
             $payload = $jwtAuth->authenticate();
+            if(empty($payload->sub)) return false;
+            $tokenInRedis = RedisTools::getToken($payload->sub);
+            if (!empty($tokenInRedis)) {  //检查 Redis中是否有值
+
+                if( $tokenInRedis!= $jwtAuth->getToken()) {  //说明新的token已经分发，当前token不能再用
+                    Log::debug("@validateWithOldToken new token has published.");
+                    return false;
+                }
+            }
             if ($checkExpireTime) {
-                $passed_time = Carbon::now()->subHours(24)->timestamp;
+                $passed_time = Carbon::now()->subHours(24)->timestamp;   //最大接受过期24小的旧token来换新token
                 if (isset($payload->exp) && ($passed_time > $payload->exp)) {
                     Log::debug("@validateWithOldToken token expired");
                     return false;
