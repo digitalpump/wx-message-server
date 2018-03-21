@@ -21,7 +21,8 @@ class WxTokenTools
     const WX_AUTH_URL = "https://api.weixin.qq.com/sns/auth";
     const WX_JSCODE2SESSION_URL = "https://api.weixin.qq.com/sns/jscode2session";
 
-
+    const WX_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
+    const WX_TEMPLATE_MESSAGE_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=";
 
     /*
    //正常返回的JSON数据包
@@ -66,7 +67,6 @@ class WxTokenTools
             if ($response->getStatusCode() != 200) {
                 return null;
             }
-            Log::debug("@jscode2Session:".$response->getBody());
             return \GuzzleHttp\json_decode($response->getBody());
         } catch (\Exception $exception) {
             return null;
@@ -210,5 +210,48 @@ class WxTokenTools
 
     }
 
+    /**
+     *
+     * 获取微信token
+     * @param $appid
+     * @param $secret
+     * @return null|\Psr\Http\Message\StreamInterface
+     * {"access_token": "ACCESS_TOKEN", "expires_in": 7200}
+     * {"errcode": 40013, "errmsg": "invalid appid"}
+     */
+    public static function getToken($appid,$secret) {
+        $httpClient = new Client();
+        try {
+            $response = $httpClient->request('GET',WxTokenTools::WX_TOKEN_URL
+                ,['query'=>['appid'=>$appid,'secret'=>$secret,'grant_type'=>'client_credential']]);
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return $response->getBody();
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
+
+    /**
+     * 发送微信模板消息接口
+     *
+     * @param $accessToken
+     * @param $message
+     * @return null|\Psr\Http\Message\StreamInterface
+     */
+    public static function sendTemplateMessage($accessToken,$message) {
+        $url = WxTokenTools::WX_TEMPLATE_MESSAGE_URL . $accessToken;
+        $httpClient = new Client();
+        try {
+            $response = $httpClient->post($url,['json'=>$message]);
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return $response->getBody();
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
 
 }

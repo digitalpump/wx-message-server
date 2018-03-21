@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Redis;
 class RedisTools
 {
 
-    public static function getTokenKey($did) {
+    public static function getJwtTokenKey($did) {
         $prefix  = config('app.token_key_prefix','jwt_token_uid_');
         return $prefix.$did;
     }
 
-    public static function getRefreshTokenKey($did) {
+    public static function getJwtRefreshTokenKey($did) {
         $prefix  = config('app.refresh_token_key_prefix','jwt_refresh_token_');
         return $prefix.$did;
     }
@@ -33,20 +33,20 @@ class RedisTools
         return Redis::get($key);
     }
 
-    public static function setToken($uid,$ttl_minutes,$value) {
-        return static::setex(static::getTokenKey($uid),$ttl_minutes,$value);
+    public static function setJwtToken($uid, $ttl_minutes, $value) {
+        return static::setex(static::getJwtTokenKey($uid),$ttl_minutes,$value);
     }
 
-    public static function getToken($uid) {
-        return Redis::get(static::getTokenKey($uid));
+    public static function getJwtToken($uid) {
+        return Redis::get(static::getJwtTokenKey($uid));
     }
 
-    public static function setRefreshToken($did,$ttl_minutes,$value) {
-        return static::setex(static::getRefreshTokenKey($did),$ttl_minutes,$value);
+    public static function setJwtRefreshToken($did, $ttl_minutes, $value) {
+        return static::setex(static::getJwtRefreshTokenKey($did),$ttl_minutes,$value);
     }
 
-    public static function getRefreshToken($did) {
-        return static::get(static::getRefreshTokenKey($did));
+    public static function getJwtRefreshToken($did) {
+        return static::get(static::getJwtRefreshTokenKey($did));
     }
 
 }

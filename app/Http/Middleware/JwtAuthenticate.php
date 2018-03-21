@@ -38,7 +38,7 @@ class JwtAuthenticate
             if(empty($payload->sub)) {
                 return $this->error(HttpStatusCode::UNAUTHORIZED,"Bad user id.");
             }
-            $tokenInRedis = RedisTools::getToken($payload->sub);
+            $tokenInRedis = RedisTools::getJwtToken($payload->sub);
             if($jwtAuth->getToken()!=$tokenInRedis) {
                 return $this->error(HttpStatusCode::UNAUTHORIZED,"Token expired.");
             }

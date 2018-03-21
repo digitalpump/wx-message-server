@@ -206,7 +206,7 @@ class JWTAuthController extends Controller
             $jwtAuth->setIgnores(['exp']);
             $payload = $jwtAuth->authenticate();
             if(empty($payload->sub)) return false;
-            $tokenInRedis = RedisTools::getToken($payload->sub);
+            $tokenInRedis = RedisTools::getJwtToken($payload->sub);
             if (!empty($tokenInRedis)) {  //检查 Redis中是否有值
 
                 if( $tokenInRedis!= $jwtAuth->getToken()) {  //说明新的token已经分发，当前token不能再用
@@ -269,7 +269,7 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "User id not found");
         }
 
-        $tokenInCache = RedisTools::getRefreshToken($payload->sub);
+        $tokenInCache = RedisTools::getJwtRefreshToken($payload->sub);
 
         if ($tokenInCache!=$jwtAuth->getToken()) {
            return $this->error(HttpStatusCode::BAD_REQUEST,"Refresh token expired(a new refresh token has published).");
@@ -344,7 +344,7 @@ class JWTAuthController extends Controller
             return PayloadFactory::make()->setTTL($token_ttl)->buildClaims(['sub' => $uid])->getClaims();
         },false);
         if(empty($token)) return "";
-        RedisTools::setToken($uid,$token_ttl,$token);
+        RedisTools::setJwtToken($uid,$token_ttl,$token);
         return $token;
     }
 
@@ -364,7 +364,7 @@ class JWTAuthController extends Controller
         },true);
 
         if(empty($token)) return $token;
-        RedisTools::setRefreshToken($uid,$refresh_ttl,$token);
+        RedisTools::setJwtRefreshToken($uid,$refresh_ttl,$token);
         return $token;
     }
 
@@ -385,7 +385,7 @@ class JWTAuthController extends Controller
             return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['openid' => $openid, 'nbf' => $nbf, 'sub' => $uid])->getClaims();
         },true);
         if(empty($token)) return $token;
-        RedisTools::setRefreshToken($uid,$refresh_ttl,$token);
+        RedisTools::setJwtRefreshToken($uid,$refresh_ttl,$token);
         return $token;
     }
 

@@ -10,6 +10,7 @@
 namespace App\Console\Commands;
 
 
+use App\Common\Tools\WxTemplateMessage\ReserveSuccessMessage;
 use App\Events\RefundEvent;
 use Illuminate\Console\Command;
 use Event;
@@ -30,6 +31,13 @@ class TestEvent extends Command
     {
         app('JwtUser')->setId(1);
 
+        $touser = "jeffrey";
+        $message = new ReserveSuccessMessage($touser,'form_id','index?aa=1');
+        $message->addKeyWord("keyword1","中国通知");
+        $message->addKeyWord("keyword2","外婆通知");
+        $message->addKeywordColor('keyword1',"#FFFFEE");
+        $result = $message->spew();
+        echo \GuzzleHttp\json_encode($result);
         Event::fire(new RefundEvent(12,-1,0));
     }
 }
