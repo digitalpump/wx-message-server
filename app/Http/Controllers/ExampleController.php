@@ -31,7 +31,9 @@ class ExampleController extends Controller
 
     public function hello(Request $request) {
         $user = app('JwtUser')->getUser();
-        return $this->success(['user'=>$user,'info'=>'hello lumen world']);
+        $id = app('JwtUser')->getId();
+        $oauth = Users::find($id)->oauths()->where('from',OauthUsers::FROM_WX_MINI_PROGRAM)->first();
+        return $this->success([['user'=>$user,'oauth'=>$oauth],'info'=>'hello lumen world']);
     }
 
     //

@@ -28,7 +28,7 @@ class ReserveSuccessMessage extends CommonMessage
         {{keyword8.DATA}}
     */
     protected $template_id = '_LPzw2XCM7jUcSd3JBTPqv2B8dh8qsIGjjxjl_1-KlQ';
-    protected $emphasis_keyword = 'keyword2.DATA';
+    protected $emphasis_keyword = 'keyword4.DATA';
     protected $color = '#FFFFFF';
 
     /*protected function getKeywords()

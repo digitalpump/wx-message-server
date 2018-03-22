@@ -22,7 +22,9 @@ class RedisTools
         return $prefix.$did;
     }
 
-
+    public static function getWxAccessTokenKey() {
+        $prefix  = config('app.weixin_access_token_key','wx_access_token_key');
+    }
 
     public static function setex($key,$ttl_minutes,$value) {
 
@@ -47,6 +49,14 @@ class RedisTools
 
     public static function getJwtRefreshToken($did) {
         return static::get(static::getJwtRefreshTokenKey($did));
+    }
+
+    public static function setWxAccessToken($ttl_minutes,$value) {
+        return static::setex(static::getWxAccessTokenKey(),$ttl_minutes,$value);
+    }
+
+    public static function getWxAccessToken() {
+        return static::get(static::getWxAccessTokenKey());
     }
 
 }

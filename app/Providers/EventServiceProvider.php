@@ -16,6 +16,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\RefundEvent'=>[
             'App\Listeners\RefundListener',
             'App\Listeners\RefundPushMessageListener',
+        ],
+        'App\Events\MessageEvent' => [
+            'App\Listeners\MessageListener',
         ]
     ];
 }

@@ -239,6 +239,10 @@ class WxTokenTools
      * @param $accessToken
      * @param $message
      * @return null|\Psr\Http\Message\StreamInterface
+     * {
+        "errcode": 0,
+        "errmsg": "ok"
+        }
      */
     public static function sendTemplateMessage($accessToken,$message) {
         $url = WxTokenTools::WX_TEMPLATE_MESSAGE_URL . $accessToken;

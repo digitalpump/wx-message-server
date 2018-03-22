@@ -16,6 +16,7 @@ abstract class Message
     protected $page ="";                //点击模板卡片后的跳转页面，仅限本小程序内的页面。支持带参数,（示例index?foo=bar）。该字段不填则模板无跳转。
     protected $form_id = "";            //表单提交场景下，为 submit 事件带上的 formId；支付场景下，为本次支付的 prepay_id
     protected $data = "";               //模板内容，不填则下发空模板
+    protected $url ="";                 //跳转URL
     const COLOR_DEFAULT = "#000000";
 
 /*
@@ -36,6 +37,10 @@ abstract class Message
         if(!empty($page)) $this->page = $page;
     }
 
+    public function setJumpUrl($url) {
+        $this->url = $url;
+        return $this;
+    }
     public function spew() {
         if(empty($this->template_id)) return "Template id not found.";
         if(empty($this->touser)) return "touser can't be empty";
@@ -45,6 +50,7 @@ abstract class Message
         if(!empty($this->page)) $obj->page = $this->page;
 
         if(!empty($this->form_id)) $obj->form_id = $this->form_id;
+        if(!empty($this->url)) $obj->url = $this->url;
         $obj->data = $this->generateBody();
         if(!empty($this->color)) $obj->color = $this->color;
         if(!empty($this->emphasis_keyword)) $obj->emphasis_keyword = $this->emphasis_keyword;
