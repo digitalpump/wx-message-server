@@ -29,6 +29,8 @@ class MessageListener
         $ret = Redis::rpush($key,$event->message);
         if(empty($ret)) {
             Log::error("Push message to redis error:" . $key . " , value=" . $event->message);
+        } else {
+            Log::debug("message success:".$event->message);
         }
 
     }

@@ -13,6 +13,7 @@ class TestMessage extends CommonMessage
 {
     protected $template_id = "BZ1UD2cessDJ4HD-UFyPAMcl5UEBlTzPH0L4lOqKhjY";
     protected $emphasis_keyword = 'keyword1.DATA';
-    protected $color = '#FFFFFF';
+    protected $color = "#FF0000";
+    protected $url = "http://qq.com/";
 
 }

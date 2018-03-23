@@ -11,6 +11,7 @@ namespace App\Console\Commands;
 
 
 use App\Common\Tools\MessageTools;
+use App\Common\Tools\WxTemplateMessage\PreOrderMessage;
 use App\Common\Tools\WxTemplateMessage\ReserveSuccessMessage;
 use App\Common\Tools\WxTemplateMessage\TestMessage;
 use App\Events\MessageEvent;
@@ -33,7 +34,7 @@ class TestEvent extends Command
     public function handle()
     {
 
-        $touser = "oHNyO4niJX0eALpAu-0al3I8LVcE";
+        /*$touser = "oHNyO4niJX0eALpAu-0al3I8LVcE";
 
         $messageTools = new MessageTools("");
         $messageTools->sendMessage(function() use($touser) {
@@ -49,9 +50,9 @@ class TestEvent extends Command
             $message->addKeywordColor('keyword1',"#FFFFEE");
             return $message;
           }
-        );
+        );*/
 
-        //Event::fire(new MessageEvent(\GuzzleHttp\json_encode($result)));
+
 
         $touser2 = "ofSvBt7vapubGyEEZV9ktIIv__Ik";
 
@@ -62,9 +63,17 @@ class TestEvent extends Command
             $object =  new TestMessage($touser2);
             $object->addKeyWord("keyword1","中国通知商品");
             $object->addKeyWord("keyword2","外婆通知商家");
+            return $object;
+        });
+        $messageTools2->sendMessage(function() use ($touser2){
+            $object = new PreOrderMessage($touser2);
+            $object->addKeyWord("keyword1","中国通知商品");
+            $object->addKeyWord("keyword2","外婆通知商家");
+            $object->addKeyWord("keyword3","别忘了");
             $object->setJumpUrl("http://hs.ontheroadstore.com/Portal/Index/index.html");
             return $object;
         });
+
         //Event::fire(new MessageEvent(\GuzzleHttp\json_encode($result2),$appid));
     }
 }
