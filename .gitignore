@@ -3,4 +3,5 @@
 Homestead.json
 Homestead.yaml
 /storage
+/config
 lumen_ide_helper.php
