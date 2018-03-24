@@ -8,8 +8,6 @@
 
 namespace App\Common\Tools;
 
-use App\Events\MessageEvent;
-use Event;
 class MessageTools
 {
     private $appid = "";
@@ -18,9 +16,16 @@ class MessageTools
         $this->appid = $appid;
     }
 
-    public function sendMessage(callable $callback) {
-        $object = call_user_func($callback);
-        if(empty($object)) return;
-        Event::fire(new MessageEvent(json_encode($object->spew()),$this->appid));
+    public function sendMessage($msgObject,callable $sendTools) {
+        if(empty($msgObject)) return false;
+        if(!is_object($msgObject)) return false;
+        try {
+            $body = $msgObject->spew();
+        } catch (\Exception $e) {
+            return false;
+        }
+        if(empty($body)) return false;
+        //方便使用其它各种消息发送方式，如redis ,http 等
+        return call_user_func($sendTools,json_encode($body),$this->appid);
     }
 }
