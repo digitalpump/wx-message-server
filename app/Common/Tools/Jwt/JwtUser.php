@@ -15,6 +15,7 @@ class JwtUser
 {
     private $id;
     private $user;
+    private $vendor;
     public function __construct($id = 0)
     {
         if(!empty($id)) $this->id = $id;
@@ -32,6 +33,13 @@ class JwtUser
             $this->user = Users::find($this->id);
         }
         return $this->user;
+    }
+
+    public function getVendor() {
+        if (empty($this->vendor)) {
+            $this->vendor = Vendor::find($this->id);
+        }
+        return $this->vendor;
     }
 
 }

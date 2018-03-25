@@ -14,9 +14,9 @@
 //$app->group(['prefix' => 'appv5', 'namespace' => 'App\Http\Controllers', 'middleware' => ['auth', 'active_status','after']], function () use ($app) {
 
 //}
-$router->get('/welcome','ExampleController@welcome');
-$router->get('/getout','ExampleController@getout');
-$router->post('/login/email','JWTAuthController@emailLogin');
-$router->post('/login/weixin','JWTAuthController@wxLogin');
-$router->post('/login/miniprogram','JWTAuthController@wxMiniProgramLogin');
-$router->post('/token/refresh','JWTAuthController@refreshToken');
+$router->post('/message/send','MessageApiController@sendMessage');
+
+//$router->post('/login/email','JWTAuthController@emailLogin');
+//$router->post('/login/weixin','JWTAuthController@wxLogin');
+//$router->post('/login/miniprogram','JWTAuthController@wxMiniProgramLogin');
+//$router->post('/token/refresh','JWTAuthController@refreshToken');

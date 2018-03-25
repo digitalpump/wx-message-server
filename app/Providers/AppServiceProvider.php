@@ -23,8 +23,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton("JwtConfig",function($app) {
            return new JwtConfigure();
         });
-        $this->app->singleton('WxConfig',function($app) {
-           return new WeixinConfigure();
-        });
+
     }
 }
