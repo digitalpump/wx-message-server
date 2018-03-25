@@ -9,7 +9,6 @@
 namespace App\Http\Controllers;
 
 use App\Common\Tools\Jwt\JwtAuth;
-use App\Common\Tools\Jwt\PayloadFactory;
 use App\Common\Tools\JwtTokenTools;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\UserTools;
@@ -287,108 +286,13 @@ class JWTAuthController extends Controller
 
         if (empty($payload->openid)) {
             // 生成新的普通账号密码登录token 和 refresh_token
-            return $this->newNormallyToken($uid);
+            $tokens = JwtTokenTools::newNormallyToken($uid);
         } else {
-
             //生成新的微信登录token 和 refresh_token
-            return $this->newWxLoginToken($uid, $payload->openid);
+            $tokens = JwtTokenTools::newWxLoginToken($uid, $payload->openid);
         }
+        return $this->onAuthorized($tokens);
 
-
-    }
-
-    /**
-     * 返回普通登录token
-     * @param $uid
-     * @param $did
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function newNormallyToken($uid)
-    {
-        $jwtAuth = new JwtAuth();
-        $jwtAuth->setJwtConfigure(app('JwtConfig'));
-        $token = $this->generateNewToken($jwtAuth, $uid);
-        $refresh_token = $this->generateNewRefreshToken($jwtAuth, $uid);
-        return $this->onAuthorized(['token' => app('JwtConfig')->getAuthMethod() . $token
-            , 'refresh_token' => app('JwtConfig')->getAuthMethod() . $refresh_token]);
-    }
-
-
-    /**
-     * 返回微信登录 token
-     * @param $uid
-     * @param $did
-     * @param $openid
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function newWxLoginToken($uid, $openid)
-    {
-        $jwtAuth = new JwtAuth();
-        $jwtAuth->setJwtConfigure(app('JwtConfig'));
-        $token = $this->generateNewToken($jwtAuth, $uid);
-        $refresh_token = $this->generateNewWxRefreshToken($jwtAuth, $uid, $openid);
-        return $this->onAuthorized(['token' => app('JwtConfig')->getAuthMethod() . $token
-            , 'refresh_token' => app('JwtConfig')->getAuthMethod() . $refresh_token]);
-
-    }
-
-
-    /**
-     * 生成新的token 接口
-     * @param JwtAuth $jwtAuth
-     * @param $uid
-     * @return string
-     */
-    private function generateNewToken(JwtAuth $jwtAuth, $uid)
-    {
-        $token_ttl = app('JwtConfig')->getTokenTtl();
-        $token =  $jwtAuth->encode(function () use ($uid,$token_ttl) {
-            return PayloadFactory::make()->setTTL($token_ttl)->buildClaims(['sub' => $uid])->getClaims();
-        },false);
-        if(empty($token)) return "";
-        RedisTools::setJwtToken($uid,$token_ttl,$token);
-        return $token;
-    }
-
-    /**
-     * 生成新的刷新token接口
-     * @param JwtAuth $jwtAuth
-     * @param $uid
-     * @return string
-     */
-    private function generateNewRefreshToken(JwtAuth $jwtAuth, $uid)
-    {
-        $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
-        $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
-        $token = $jwtAuth->encode(function () use ($uid, $refresh_ttl,$refresh_delay) {
-            $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
-            return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['nbf' => $nbf, 'sub' => $uid])->getClaims();
-        },true);
-
-        if(empty($token)) return $token;
-        RedisTools::setJwtRefreshToken($uid,$refresh_ttl,$token);
-        return $token;
-    }
-
-    /**
-     * 生成新的微信刷新token接口
-     * @param JwtAuth $jwtAuth
-     * @param $uid
-     * @param $openid
-     * @return string
-     */
-    private function generateNewWxRefreshToken(JwtAuth $jwtAuth, $uid, $openid)
-    {
-        $refresh_ttl = app('JwtConfig')->getRefreshTokenTtl();
-        $refresh_delay = app('JwtConfig')->getRefreshTokenDelay();
-
-        $token = $jwtAuth->encode(function () use ($uid, $openid, $refresh_ttl,$refresh_delay) {
-            $nbf = Carbon::now()->addMinutes($refresh_delay)->timestamp;
-            return PayloadFactory::make()->setTTL($refresh_ttl)->buildClaims(['openid' => $openid, 'nbf' => $nbf, 'sub' => $uid])->getClaims();
-        },true);
-        if(empty($token)) return $token;
-        RedisTools::setJwtRefreshToken($uid,$refresh_ttl,$token);
-        return $token;
     }
 
 
