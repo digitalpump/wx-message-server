@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\Jwt\JwtAuth;
 use App\Common\Tools\Jwt\PayloadFactory;
+use App\Common\Tools\JwtTokenTools;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\UserTools;
 use App\Common\Tools\WxTokenTools;
@@ -95,6 +96,12 @@ class JWTAuthController extends Controller
         // return $this->wxGetAccessTokenByToken($wxAccessToken,$openid);
     }
 
+    /**
+     * 微信小程序登录接口
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function wxMiniProgramLogin(Request $request)
     {
         $wxCode = $request->get('wx_code');
@@ -128,8 +135,9 @@ class JWTAuthController extends Controller
             }
 
             //RedisTools::setWxSesssionKey($uid, $responseAccessToken->session_key);
+            $tokens = JwtTokenTools::newWxLoginToken($uid,$responseAccessToken->openid);
+            return $this->onAuthorized($tokens);
 
-            return $this->newWxLoginToken($uid, $responseAccessToken->openid);
             /*
              *  $uid = UserTools->wxLogin($responseAccessToken)
              *
@@ -143,6 +151,20 @@ class JWTAuthController extends Controller
 
     }
 
+
+    /**
+     * API 接口程序登录接口，
+     *
+     * @param Request $request
+     *
+     *          传入参数 ： appkey
+     *                    nonce
+     *                    curtime
+     *                    checksum
+     */
+    public function apiWithAppkeyAndSecretLogin(Request $request) {
+
+    }
 
     private function authFromWeixinByToken(Request $request)
     {
