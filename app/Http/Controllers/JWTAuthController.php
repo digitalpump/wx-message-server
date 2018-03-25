@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\Jwt\JwtAuth;
 use App\Common\Tools\Jwt\PayloadFactory;
+use App\Common\Tools\JwtTokenTools;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\UserTools;
 use App\Common\Tools\WxTokenTools;
@@ -78,8 +79,9 @@ class JWTAuthController extends Controller
                 return $this->error(HttpStatusCode::UNAUTHORIZED, "User not exist.");
             }
 
+            $tokens = JwtTokenTools::newWxLoginToken($uid, $responseAccessToken->openid);
 
-            return $this->newWxLoginToken($uid, $responseAccessToken->openid);
+            return $this->onAuthorized($tokens);
             /*
              *  $uid = UserTools->wxLogin($responseAccessToken)
              *
@@ -128,8 +130,8 @@ class JWTAuthController extends Controller
             }
 
             //RedisTools::setWxSesssionKey($uid, $responseAccessToken->session_key);
-
-            return $this->newWxLoginToken($uid, $responseAccessToken->openid);
+            $tokens = JwtTokenTools::newWxLoginToken($uid, $responseAccessToken->openid);
+            return $this->onAuthorized($tokens);
             /*
              *  $uid = UserTools->wxLogin($responseAccessToken)
              *
@@ -185,8 +187,8 @@ class JWTAuthController extends Controller
 
         //UserTools->emailLogin();
         $uid = 2;
-
-        return $this->newNormallyToken($uid);
+        $tokens = JwtTokenTools::newNormallyToken($uid);
+        return $this->onAuthorized($tokens);
 
     }
 
