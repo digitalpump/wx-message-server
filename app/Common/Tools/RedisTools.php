@@ -23,7 +23,12 @@ class RedisTools
     }
 
     public static function getWxAccessTokenKey() {
-        $prefix  = config('app.weixin_access_token_key','wx_access_token_key');
+        $prefix  = config('app.weixin_access_token_key','wx_access_token_');
+    }
+
+    public static function getAppSecretKey($appid) {
+        $prefix  = config('app.local_app_secret_key','local_app_secret_');
+        return $prefix.$appid;
     }
 
     public static function setex($key,$ttl_minutes,$value) {
@@ -57,6 +62,14 @@ class RedisTools
 
     public static function getWxAccessToken() {
         return static::get(static::getWxAccessTokenKey());
+    }
+
+    public static function setAppSecret($appid,$value) {
+        return Redis::set(static::getAppSecretKey($appid),$value);
+    }
+
+    public static function getAppSecret($appid) {
+        return Redis::get(static::getAppSecretKey($appid));
     }
 
 }

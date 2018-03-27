@@ -9,6 +9,12 @@
 namespace App\Http\Api\Middleware;
 
 use App\Common\Tools\HttpStatusCode;
+use App\Common\Tools\RedisTools;
+use App\Models\VendorAppSecret;
+use Closure;
+use Log;
+use Mockery\Exception;
+
 class ApiAuthenticate
 {
     /**
@@ -28,8 +34,9 @@ class ApiAuthenticate
         }
         $app_secret = $this->getSecret($app_key);
         if (empty($app_secret)) {
-            return $this->error(HttpStatusCode::FORBIDDEN,"Secret need.");
+            return $this->error(HttpStatusCode::FORBIDDEN,"app secret not found.");
         }
+
         $now = time();
         $diff = $now - $cur_time;
         if ($diff>300) {
@@ -37,7 +44,7 @@ class ApiAuthenticate
         }
         $check_sum_calc = sha1($app_secret.$nonce.$cur_time);
         if ($check_sum_calc != $check_sum) {
-            return $this->error(HttpStatusCode::UNAUTHORIZED,"检验失败!");
+            return $this->error(HttpStatusCode::UNAUTHORIZED,"check sum failed!");
         }
         return $next($request);
     }
@@ -46,7 +53,39 @@ class ApiAuthenticate
     }
 
     private function getSecret($appKey) {
-        return "";
+        $secret = "";
+        try {
+            $secret = RedisTools::getAppSecret($appKey);
+        } catch (\Exception $exception) {
+
+        }
+        if (empty($secret)) {
+            //Get data form database and set it redis
+            try {
+                $secretModel = VendorAppSecret::where('app_key','=',$appKey)->first();
+            } catch (\Exception $exception) {
+                return "";
+            }
+
+            if(empty($secretModel)) {
+                Log::error("find secret form db return null. for " . $appKey);
+                return "";
+            }
+
+            if(empty($secretModel->app_secret)) {
+                Log::error("find app secret form db return empty. for " . $appKey);
+                return "";
+            }
+            $secret = $secretModel->app_secret;
+            try {
+                RedisTools::setAppSecret($appKey,$secret);
+            } catch (\Exception $exception) {
+
+            }
+
+
+        }
+        return $secret;
     }
 
 }
