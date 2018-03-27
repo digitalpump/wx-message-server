@@ -46,11 +46,11 @@ class MessageApiController extends Controller
             }
             $wx_appid = $obj['appid'];
         }
-        
+
         $key = env('MESSAGE_POOL_KEY_RPEFIX') . $wx_appid;
         try {
             $result =  Redis::rpush($key,json_encode($obj['message']));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             Log::error("Push message into redis failed." . $exception->getMessage());
             return $this->error(HttpStatusCode::NOT_MODIFIED,"Send message failed.");
         }
@@ -60,14 +60,25 @@ class MessageApiController extends Controller
     }
 
     private function getWxAppIdByAppKey($appkey) {
+        $redis_key = "wx_appid_cached_by_" . $appkey;
+        try {
+            $result = Redis::get($redis_key);
+            if(!empty($result)) return $result;
+        } catch (\Exception $exception) {
+
+        }
 
         try {
-            return DB::table("vendor_app_secret")
+            $appid = DB::table("vendor_app_secret")
                 ->join('vendor_wx_account',function ($join) {
                     $join->on('vendor_app_secret.vendor_id', '=', 'vendor_wx_account.vendor_id');
                 })
                 ->where('app_key',$appkey)
+                ->where('is_default',1)
                 ->value("wx_appid");
+            if(empty($appid)) return "";
+            Redis::setex($redis_key,3600,$appid);
+            return $appid;
 
         } catch (\Exception $exception) {
             return "";
