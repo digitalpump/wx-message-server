@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use Log;
 use DB;
-use Mockery\Exception;
+
 
 class MessageApiController extends Controller
 {
