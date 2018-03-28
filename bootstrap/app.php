@@ -62,11 +62,11 @@ $app->singleton(
 | route or middleware that'll be assigned to some specific routes.
 |
 */
-/*
+
 $app->middleware([
-    App\Http\Middleware\JwtAuthenticate::class,
+    App\Http\Api\Middleware\CrosMiddleware::class,
 ]);
-*/
+
  $app->routeMiddleware([
      'api.auth' => App\Http\Api\Middleware\ApiAuthenticate::class,
  ]);
@@ -92,6 +92,7 @@ $app->register(App\Providers\EventServiceProvider::class);
 //Redis service
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 
+$app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
 
 /*
 |--------------------------------------------------------------------------
