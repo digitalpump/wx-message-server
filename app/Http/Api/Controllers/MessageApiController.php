@@ -27,16 +27,13 @@ class MessageApiController extends Controller
      */
     public function sendMessage(Request $request) {
         $jsonbody = $request->json()->all();
-        if(empty($obj)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
+        if(empty($jsonbody)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
 
-        Log::debug(json_encode($jsonbody));
         if(!empty($jsonbody[0])) {
             $obj = json_decode($jsonbody[0]);
-            var_export($obj);
             $message = $obj->message;
             $wx_appid = $obj->appid;
         } else {
-            //$obj = \GuzzleHttp\json_decode($jsonbody);
             $message = $jsonbody['message'];
             $wx_appid = $jsonbody['appid'];
         }
@@ -61,6 +58,7 @@ class MessageApiController extends Controller
 
 
         $key = env('MESSAGE_POOL_KEY_RPEFIX') . $wx_appid;
+
         try {
             $result =  Redis::rpush($key,json_encode($message));
         } catch (\Exception $exception) {
