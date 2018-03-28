@@ -26,7 +26,7 @@ class MessageApiController extends Controller
      * @param Request $request
      */
     public function sendMessage(Request $request) {
-        $obj = $request->json()->all();
+        $obj = $request->json();
 
         if(empty($obj)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
 
