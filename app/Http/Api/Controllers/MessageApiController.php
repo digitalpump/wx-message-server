@@ -29,11 +29,12 @@ class MessageApiController extends Controller
         $obj = $request->json()->all();
         if(empty($obj)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
 
+        var_export($obj);
         if(!empty($obj[0])) {
             $bodyObj = $obj[0];
             Log::debug("$bodyObj=".\GuzzleHttp\json_encode($bodyObj));
-            $message = $bodyObj['message'];
-            $wx_appid = $bodyObj['appid'];
+            $message = $bodyObj->message;
+            $wx_appid = $bodyObj->appid;
         } else {
             $message = $obj['message'];
             $wx_appid = $obj['appid'];
