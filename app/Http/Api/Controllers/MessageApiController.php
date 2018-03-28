@@ -28,30 +28,40 @@ class MessageApiController extends Controller
     public function sendMessage(Request $request) {
         $obj = $request->json()->all();
         if(empty($obj)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
-        $keys = $request->json()->keys();
-        Log::debug(\GuzzleHttp\json_encode($keys));
+
         Log::debug(\GuzzleHttp\json_encode($obj));
-        if(empty($obj['message'])) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.message is empty.");
+        if(!empty($obj[0])) {
+            $bodyObj = $obj[0];
+            Log::debug("body message". $bodyObj->message);
+            $message = $bodyObj->message;
+            $wx_appid = $bodyObj->appid;
+        } else {
+            $message = $obj['message'];
+            $wx_appid = $obj['appid'];
+
+        }
+
+        if(empty($message)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.message is empty.");
 
         $app_key = $request->header('appkey');
         //检查appid 是否存在并属于该用户 with app_key, ---》好像不需要，微信用户的openid 是分开的，不会被串发
 
-        $wx_appid = "";
-        if(empty($obj['appid'])) { //方便用户和安全，不输入wx appid的情况下，通过appkey获得wx appid，但仅限于该账号下只有一个微信appid 的情况，有多个的话必须指定
+
+        if(empty($wx_appid)) { //方便用户和安全，不输入wx appid的情况下，通过appkey获得wx appid，但仅限于该账号下只有一个微信appid 的情况，有多个的话必须指定
             $wx_appid = $this->getWxAppIdByAppKey($app_key);
             if(empty($wx_appid)) {
                 return $this->error(HttpStatusCode::FORBIDDEN,"No weixin appid exist for key=".$app_key);
             }
-        } else {
-            if(!$this->paramsChecking($obj['appid'])) {
-                return $this->error(HttpStatusCode::BAD_REQUEST,"Appid look bad.");
-            }
-            $wx_appid = $obj['appid'];
         }
+
+        if(!$this->paramsChecking($wx_appid)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"Appid look bad.");
+        }
+
 
         $key = env('MESSAGE_POOL_KEY_RPEFIX') . $wx_appid;
         try {
-            $result =  Redis::rpush($key,json_encode($obj['message']));
+            $result =  Redis::rpush($key,json_encode($message));
         } catch (\Exception $exception) {
             Log::error("Push message into redis failed." . $exception->getMessage());
             return $this->error(HttpStatusCode::NOT_MODIFIED,"Send message failed.");
