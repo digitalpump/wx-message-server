@@ -30,6 +30,7 @@ class MessageApiController extends Controller
 
         if(empty($obj)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
 
+        Log::debug(is_object($obj)?"Object recived.":"array received.");
         Log::debug(\GuzzleHttp\json_encode($obj));
         if(empty($obj['message'])) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.message is empty.");
 
