@@ -9,9 +9,10 @@
 namespace App\Http\Api\Controllers;
 
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Log;
-class WeixinApiController
+class WeixinApiController extends Controller
 {
 
     public function service(Request $request) {
