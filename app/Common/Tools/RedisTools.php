@@ -60,8 +60,8 @@ class RedisTools
         return static::setex(static::getWxAccessTokenKey(),$ttl_minutes,$value);
     }
 
-    public static function getWxAccessToken() {
-        return static::get(static::getWxAccessTokenKey());
+    public static function getWxAccessToken($appid) {
+        return static::get(static::getWxAccessTokenKey().$appid);
     }
 
     public static function setAppSecret($appid,$value) {

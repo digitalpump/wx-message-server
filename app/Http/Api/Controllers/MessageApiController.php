@@ -120,7 +120,7 @@ class MessageApiController extends Controller
         }
         $accessToken = RedisTools::getWxAccessToken($wx_appid);
         if (empty($accessToken)) {
-            return $this->error(HttpStatusCode::NO_CONTENT,"None access token.");
+            return $this->error(HttpStatusCode::NO_CONTENT,"Access token not found.");
         }
         return $this->success($accessToken);
     }
