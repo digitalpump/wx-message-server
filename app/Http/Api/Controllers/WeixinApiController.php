@@ -20,7 +20,7 @@ class WeixinApiController
         $app = app('wechat.official_account');
         $app->server->push(function($message){
             Log::debug("message:".json_encode($message));
-            return $message;
+            return "";
         });
 
         return $app->server->serve();
