@@ -64,7 +64,7 @@ $app->singleton(
 */
 
 $app->middleware([
-    App\Http\Api\Middleware\CrosMiddleware::class,
+    //App\Http\Api\Middleware\CrosMiddleware::class,
 ]);
 
  $app->routeMiddleware([
