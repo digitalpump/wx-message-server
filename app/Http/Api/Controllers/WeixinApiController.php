@@ -22,7 +22,7 @@ class WeixinApiController extends Controller
         $app = app('wechat.official_account');
         $app->server->push(function($message){
             Log::debug("message:".json_encode($message));
-            return $message['echostr'];
+            return "Success";
         });
 
         return $app->server->serve();
