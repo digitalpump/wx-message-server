@@ -17,9 +17,9 @@ class WeixinApiAuthenticate
 {
     public function handle($request, Closure $next){
 
-        $nonce = $request->input('nonce');
-        $timestamp = $request->input('timestamp');
-        $signature = $request->input('signature');
+        //$nonce = $request->input('nonce');
+        //$timestamp = $request->input('timestamp');
+        //$signature = $request->input('signature');
         $token = env('WECHAT_OFFICIAL_ACCOUNT_TOKEN','');
 
         /*if (empty($token) || empty($signature)||empty($nonce)||empty($timestamp)) {
