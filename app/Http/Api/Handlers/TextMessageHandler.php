@@ -20,7 +20,13 @@ class TextMessageHandler implements EventHandlerInterface
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
         $content = $payload['Content'];
+        if ($openid=='ofSvBt7vapubGyEEZV9ktIIv__Ik') {
+            return "老板你好。";
+        }
         if (trim($content)=="我要上天") {
+            //TODO 查用户有没有注册
+            //有注册
+            //无注册，发送注册验证码
             return "OK.".$openid;
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
