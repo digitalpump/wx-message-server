@@ -10,7 +10,7 @@ namespace App\Http\Api\Controllers;
 
 
 use Illuminate\Http\Request;
-
+use Log;
 class WeixinApiController
 {
 
