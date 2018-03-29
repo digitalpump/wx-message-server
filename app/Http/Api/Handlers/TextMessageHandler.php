@@ -15,9 +15,15 @@ class TextMessageHandler implements EventHandlerInterface
 {
     public function handle($payload = null)
     {
-       Log::debug("@TextMessageHandler payload=".json_encode($payload));
-       Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
-       Log::debug("@TextMessageHandler Content:".$payload['Content']);
+       //MsgId
+        $msgId = $payload['MsgId'];
+        $openid = $payload['FromUserName'];
+        $content = $payload['Content'];
+        if (trim($content)=="我要上天") {
+            return "1095592";
+        }
+       //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
+       //Log::debug("@TextMessageHandler Content:".$payload['Content']);
     }
 
 }
