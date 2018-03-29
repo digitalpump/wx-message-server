@@ -15,7 +15,7 @@ class OtherMessageHandler implements EventHandlerInterface
 {
     public function handle($payload = null)
     {
-        Log::debug("@OtherMessageHandler");
+        Log::debug("@OtherMessageHandler:" . json_encode($payload));
 
     }
 

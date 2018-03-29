@@ -19,7 +19,7 @@ use Log;
 class WeixinApiController extends Controller
 {
 
-    public function serve(Request $request) {
+    public function officialServe(Request $request) {
 
         $app = app('wechat.official_account');
         $app->server->push(TextMessageHandler::class,Message::TEXT);
@@ -58,6 +58,12 @@ class WeixinApiController extends Controller
             return "Success";
         });*/
 
+        return $app->server->serve();
+    }
+
+    public function miniProgramServe(Request $request) {
+        $app = app('wechat.mini_program');
+        $app->server->push(OtherMessageHandler::class,Message::ALL);
         return $app->server->serve();
     }
 

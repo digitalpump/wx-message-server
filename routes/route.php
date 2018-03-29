@@ -19,7 +19,7 @@ $app->router->group(['prefix'=>'api/v1','namespace' => 'App\Http\Api\Controllers
 
 $app->router->group(['prefix'=>'weixin/v1'
     ,'namespace' => 'App\Http\Api\Controllers',
-    'middleware' => ['weixin.auth']
+    //'middleware' => ['weixin.auth']
 ],function ($router){
     require_once __DIR__ . '/wx_api.php';
 });

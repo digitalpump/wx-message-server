@@ -26,13 +26,16 @@ class TextMessageHandler implements EventHandlerInterface
         if (trim($content)=="我是谁") {
             return $openid;
         }
+
         if ($openid=='ofSvBt7vapubGyEEZV9ktIIv__Ik') {
 
             //TODO boss command.
             return "老板你好。";
         }
 
-        //TODO 记录用户command  和 组合command的状态机
+        //TODO 根据用户 openid 生成一个组合命令的（订单） 记录用户command  和 组合command的状态机 ，有时效性，过60分钟未处理自动清理
+
+
         /*
          * 比如用户开始注册公众号
          *
