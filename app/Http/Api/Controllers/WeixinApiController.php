@@ -16,10 +16,11 @@ class WeixinApiController
 
     public function service(Request $request) {
 
+        Log::debug(json_encode($request->all()));
         $app = app('wechat.official_account');
         $app->server->push(function($message){
             Log::debug("message:".json_encode($message));
-            return "Success！";
+            return $message;
         });
 
         return $app->server->serve();
