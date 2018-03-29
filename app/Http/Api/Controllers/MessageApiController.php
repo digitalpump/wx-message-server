@@ -103,11 +103,22 @@ class MessageApiController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function getAccessToken(Request $request) {
-        $appid = $request->get('appid');
-        if(empty($appid) || !$this->paramsChecking($appid)) {
-            return $this->error(HttpStatusCode::BAD_REQUEST,"Appid look bad.");
+        $wx_appid = $request->get('appid');
+
+        $app_key = $request->header('appkey');
+        //检查appid 是否存在并属于该用户 with app_key, ---》好像不需要，微信用户的openid 是分开的，不会被串发
+
+
+        if(empty($wx_appid)) { //方便用户和安全，不输入wx appid的情况下，通过appkey获得wx appid，但仅限于该账号下只有一个微信appid 的情况，有多个的话必须指定
+            $wx_appid = $this->getWxAppIdByAppKey($app_key);
+            if(empty($wx_appid)) {
+                return $this->error(HttpStatusCode::FORBIDDEN,"No weixin appid exist for key=".$app_key);
+            }
         }
-        $accessToken = RedisTools::getWxAccessToken($appid);
+        if(empty($wx_appid) || !$this->paramsChecking($wx_appid)) {
+            return $this->error(HttpStatusCode::BAD_REQUEST,"appid looks bad.");
+        }
+        $accessToken = RedisTools::getWxAccessToken($wx_appid);
         if (empty($accessToken)) {
             return $this->error(HttpStatusCode::NO_CONTENT,"None access token.");
         }
