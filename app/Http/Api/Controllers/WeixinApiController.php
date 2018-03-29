@@ -16,6 +16,7 @@ class WeixinApiController
 
     public function service(Request $request) {
 
+        Log::debug("GET ALL:".json_encode($_GET));
         Log::debug(json_encode($request->all()));
 
         $app = app('wechat.official_account');
