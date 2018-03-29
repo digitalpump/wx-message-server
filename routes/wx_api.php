@@ -6,4 +6,4 @@
  * Time: 15:58
  */
 $router->get('/service','WeixinApiController@service');
-$router->post('/service','WeixinApiController@service');
+//$router->post('/service','WeixinApiController@service');
