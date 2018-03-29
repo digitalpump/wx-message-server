@@ -96,6 +96,7 @@ $app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
 
 $app->register(Overtrue\LaravelWeChat\ServiceProvider::class);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
