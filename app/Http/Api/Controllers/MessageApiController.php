@@ -97,6 +97,8 @@ class MessageApiController extends Controller
 
     }
 
+
+
     /**
      * 获取 微信 accessToken 接口
      * @param Request $request
@@ -130,6 +132,18 @@ class MessageApiController extends Controller
         if($len<$min ||$len>$max) return false;
         if($alnum) return ctype_alnum($appid);
         return true;
+    }
+
+
+    public function wxServe(Request $request) {
+        Log::debug(json_encode($request));
+        Log::debug("GET ALL:".json_encode($_GET));
+        Log::debug(json_encode($request->all()));
+
+        $echostr = $request->get('echostr');
+        Log::debug("echo str=".$echostr);
+
+        return response($echostr);
     }
 
     /**
