@@ -15,7 +15,7 @@ use Log;
 class WeixinApiController extends Controller
 {
 
-    public function service(Request $request) {
+    public function serve(Request $request) {
 
         Log::debug("GET ALL:".json_encode($_GET));
         Log::debug(json_encode($request->all()));
