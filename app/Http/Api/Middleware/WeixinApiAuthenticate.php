@@ -9,7 +9,9 @@
 namespace App\Http\Api\Middleware;
 
 use App\Common\Tools\CommonTools;
+use App\Common\Tools\HttpStatusCode;
 use Closure;
+
 use Log;
 class WeixinApiAuthenticate
 {
@@ -22,7 +24,7 @@ class WeixinApiAuthenticate
 
         if (empty($token) || empty($signature)||empty($nonce)||empty($timestamp)) {
             Log::error("参数错误，请检查配置！token=".$token." and nonce=".$nonce);
-            return $this->error(HttpStatusCode::BAD_REQUEST,"参数错误");
+            return $this->error(HttpStatusCode::BAD_REQUESTT,"参数错误");
         }
         $sha1 = CommonTools::getSHA1($token,$timestamp,$nonce);
         if($sha1!=$signature) {
@@ -32,6 +34,6 @@ class WeixinApiAuthenticate
     }
     private function error($code,$info="") {
 
-        return response()->json(["message"=>$info],$code);
+        return response($info,$code);
     }
 }
