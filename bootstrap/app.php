@@ -69,6 +69,7 @@ $app->middleware([
 
  $app->routeMiddleware([
      'api.auth' => App\Http\Api\Middleware\ApiAuthenticate::class,
+     'weixin.auth' => App\Http\Api\Middleware\WeixinApiAuthenticate::class,
  ]);
 
 /*
@@ -94,6 +95,7 @@ $app->register(Illuminate\Redis\RedisServiceProvider::class);
 
 $app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
 
+$app->register(Overtrue\LaravelWeChat\ServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

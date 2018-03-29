@@ -13,7 +13,6 @@ use App\Common\Tools\RedisTools;
 use App\Models\VendorAppSecret;
 use Closure;
 use Log;
-use Mockery\Exception;
 
 class ApiAuthenticate
 {
