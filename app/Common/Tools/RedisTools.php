@@ -24,6 +24,7 @@ class RedisTools
 
     public static function getWxAccessTokenKey() {
         $prefix  = config('app.weixin_access_token_key','wx_access_token_');
+        return $prefix;
     }
 
     public static function getAppSecretKey($appid) {
