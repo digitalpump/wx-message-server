@@ -16,7 +16,7 @@ class OtherMessageHandler implements EventHandlerInterface
     public function handle($payload = null)
     {
         Log::debug("@OtherMessageHandler");
-        return "Success";
+
     }
 
 

@@ -15,6 +15,7 @@ class TextMessageHandler implements EventHandlerInterface
 {
     public function handle($payload = null)
     {
+        Log::debug("@TextMessageHandler payload=".json_encode($payload));
        //MsgId
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
