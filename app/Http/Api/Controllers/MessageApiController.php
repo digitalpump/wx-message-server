@@ -135,17 +135,6 @@ class MessageApiController extends Controller
     }
 
 
-    public function wxServe(Request $request) {
-        Log::debug(json_encode($request));
-        Log::debug("GET ALL:".json_encode($_GET));
-        Log::debug(json_encode($request->all()));
-
-        $echostr = $request->get('echostr');
-        Log::debug("echo str=".$echostr);
-
-        return response($echostr);
-    }
-
     /**
      * TODO 解封用户接口
      * @param Request $request

@@ -69,7 +69,7 @@ $app->middleware([
 
  $app->routeMiddleware([
      'api.auth' => App\Http\Api\Middleware\ApiAuthenticate::class,
-     //'weixin.auth' => App\Http\Api\Middleware\WeixinApiAuthenticate::class,
+     'weixin.auth' => App\Http\Api\Middleware\WeixinApiAuthenticate::class,
  ]);
 
 /*

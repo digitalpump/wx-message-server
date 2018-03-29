@@ -17,21 +17,15 @@ class WeixinApiController extends Controller
 
     public function serve(Request $request) {
 
-        Log::debug(json_encode($request));
-        Log::debug("GET ALL:".json_encode($_GET));
         Log::debug(json_encode($request->all()));
 
-        $echostr = $request->get('echostr');
-        Log::debug("echo str=".$echostr);
-
-        return response($echostr);
-       /* $app = app('wechat.official_account');
+        $app = app('wechat.official_account');
         $app->server->push(function($message){
             Log::debug("message:".json_encode($message));
             return $message['echostr'];
         });
 
-        return $app->server->serve();*/
+        return $app->server->serve();
     }
 
 }
