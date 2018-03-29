@@ -19,8 +19,8 @@ class TextMessageHandler implements EventHandlerInterface
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
         $content = $payload['Content'];
-        if (trim($content)=="我要上天") {
-            return "1095592";
+        if (trim($content)=="1095592") {
+            return "OK.".$openid;
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
        //Log::debug("@TextMessageHandler Content:".$payload['Content']);
