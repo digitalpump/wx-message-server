@@ -135,7 +135,7 @@ class UserTools
             $bizOrder = new BizOrder();
             $bizOrder->user_id = $uid;
             $bizOrder->process_status = 0;
-            $bizOrder->update_code = mt_rand(8,10);
+            $bizOrder->update_code = mt_rand(1000,10000);
             if(!$bizOrder->save()) return null;
             return $bizOrder;
         } catch (\Exception $exception) {

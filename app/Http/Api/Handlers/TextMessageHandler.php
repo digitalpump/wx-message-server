@@ -11,6 +11,7 @@ namespace App\Http\Api\Handlers;
 
 use App\Common\Tools\UserTools;
 use EasyWeChat\Kernel\Contracts\EventHandlerInterface;
+use EasyWeChat\Kernel\Messages\Article;
 use Log;
 class TextMessageHandler implements EventHandlerInterface
 {
@@ -20,19 +21,23 @@ class TextMessageHandler implements EventHandlerInterface
        //MsgId
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
-        $content = $payload['Content'];
+        $content = trim($payload['Content']);
         $user = UserTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
         if ($user==null) {
             Log::error("Login failed:".json_encode($payload));
             return "糟糕，我不认识你。";
         }
-        $bizOrder = UserTools::getBizOrder($user->id);
-        if(!empty($bizOrder)) {
-            return "你得继续处理您的业务啊。 update code=" . $bizOrder->update_code;
-        }
         if ($user->role==1) {
             return "老板你好。我会执行老板命令";
         }
+
+        $haveInHandBiz = false;
+        $bizOrder = UserTools::getBizOrder($user->id);
+        if(!empty($bizOrder)) {
+            $haveInHandBiz = true;
+        }
+
+
         //自动用户注册
         //-->并返回用户ID 和 角色
         //登录后获取用户ID , 通过appid+ openid  key 保存倒redis
@@ -44,15 +49,16 @@ class TextMessageHandler implements EventHandlerInterface
         //帮助，命令行列表
         //
         //TODO 简单独立的命令优先级最高，比如查我的openid
-        if (trim($content)=="我是谁") {
-            return $openid;
+        if ($content=="我是谁") {
+            $article = new Article();
+            $article->title  = "你是谁";
+            $article->author = "jeffrey";
+            $article->content = "你的openid:" . $openid;
+            return $article;
         }
 
-        if (trim($content) =="什么情况") {
-            //显示当前业务情况
-            //审核中
-            //运行正常
-            //运行不正常，错误信息
+        if ($content =="什么情况") {
+            return $this->queryProcessStatus($user->id);
         }
 
 
@@ -67,6 +73,9 @@ class TextMessageHandler implements EventHandlerInterface
          */
 
         if (trim($content)=="我要上天") {
+            if($haveInHandBiz) {
+                return "";
+            }
             $bizOrder = UserTools::createNewBizOrder($user->id);
             //TODO 查用户有没有注册角色
             //有注册成为商家
@@ -98,11 +107,24 @@ class TextMessageHandler implements EventHandlerInterface
              *
              *
              */
-            return "OK. 请继续完成您的配置：".$bizOrder->update_code;
+            return "OK. 请继续完成您的配置，请输入：".$bizOrder->update_code  .",appid,你的微信appid";
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
        //Log::debug("@TextMessageHandler Content:".$payload['Content']);
     }
+
+
+    private function doContinueBizOrder($bizOrder,$content) {
+
+    }
+
+    /**
+     * @param $uid
+     */
+    private function queryProcessStatus($uid) {
+        return "不知道呢";
+    }
+
 
 
 
