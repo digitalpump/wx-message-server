@@ -11,7 +11,8 @@
         "nesbot/carbon": "^1.23",
         "illuminate/redis": "^5.6",
         "guzzlehttp/guzzle": "^6.3",
-        "overtrue/laravel-wechat": "~4.0"
+        "overtrue/laravel-wechat": "~4.0",
+        "zoujingli/wechat-developer": "^1.0"
     },
     "require-dev": {
 

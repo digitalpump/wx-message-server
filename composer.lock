@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "6b97b915496449fbdd0f82cc654857cf",
+    "content-hash": "5b59c7f1d17abcf62c623b19d6d13978",
     "packages": [
         {
             "name": "doctrine/inflector",
@@ -2995,6 +2995,51 @@
                 "environment"
             ],
             "time": "2016-09-01T10:05:43+00:00"
+        },
+        {
+            "name": "zoujingli/wechat-developer",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zoujingli/WeChatDeveloper.git",
+                "reference": "9ba300d0b171fd83e9b958d4f25ed4b0b3d16469"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zoujingli/WeChatDeveloper/zipball/9ba300d0b171fd83e9b958d4f25ed4b0b3d16469",
+                "reference": "9ba300d0b171fd83e9b958d4f25ed4b0b3d16469",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-openssl": "*",
+                "php": ">=5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "WeChat\\": "WeChat"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anyon",
+                    "email": "zoujingli@qq.com",
+                    "homepage": "http://ctolog.com"
+                }
+            ],
+            "description": "WeChat platform and WeChat payment development tools",
+            "homepage": "https://github.com/zoujingli/WeChatDeveloper",
+            "keywords": [
+                "WeChatDeveloper",
+                "wechat",
+                "wechatpay"
+            ],
+            "time": "2018-03-26T06:32:30+00:00"
         }
     ],
     "packages-dev": [],
