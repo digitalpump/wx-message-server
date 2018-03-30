@@ -31,7 +31,7 @@ class TextMessageHandler implements WeChatMessageHandler
         //TODO 登录后获取用户ID , 通过appid+ openid  key 保存倒redis,没必要，用户量必然不大
 
         if ($user->role==1) {
-            return "老板你好。我会执行老板命令";
+            return "老板来了？需要我做什么您吩咐";
         }
 
         $haveInHandBiz = false;
