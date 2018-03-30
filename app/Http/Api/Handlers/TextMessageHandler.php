@@ -21,7 +21,7 @@ class TextMessageHandler implements WeChatMessageHandler
        //MsgId
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
-        $content = trim($payload['Content']);
+        $content = $payload['Content'];
         $user = UserTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
         if ($user == null) {
             Log::error("Login failed:".json_encode($payload));
@@ -100,7 +100,7 @@ class TextMessageHandler implements WeChatMessageHandler
         }
 
         if($haveInHandBiz) {
-            if(empty($content)) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+            //if(empty($content)) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
             return $this->doContinueBizOrder($bizOrder,$content);
         } else {
             return "命令参考：我是谁|什么情况";
@@ -129,8 +129,9 @@ class TextMessageHandler implements WeChatMessageHandler
 
     private function doContinueBizOrder(&$bizOrder,$content) {
 
+        Log::debug("content=".$content);
         list($update_code,$cmd,$value) = explode(",",$content);
-
+        Log::debug("$update_code--$cmd--$value");
         if(empty($update_code)||empty($cmd)||empty($value)) return "命令行正确格式如下：108908,appid或者secret,对就的微信appid或secret内容";
 
         if ($update_code!=$bizOrder->update_code) {
