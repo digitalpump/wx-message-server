@@ -35,10 +35,32 @@ class WeixinApiController extends Controller
             // 缓存目录配置（可选，需拥有读写权限）
             //'cache_path'     => '',
         ];
+        $this->serviceBizProcess($config);
+    }
+
+    public function miniProgramServe(Request $request) {
+        $config = [
+            'token'          => 'wJ5UKoj6Z99jGcs1VqE9bUQN54nXlb25',
+            'appid'          => 'wxdfd474a204719893',
+            'appsecret'      => '30270ce9f2b7463e4720995cdc220c6c',
+            'encodingaeskey' => 'sR2iEGvc2MHo8AEwn1GSj7W3g3HAwikNqjmkENc6bzz',
+            // 配置商户支付参数（可选，在使用支付功能时需要）
+            //'mch_id'         => "1235704602",
+            //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
+            // 配置商户支付双向证书目录（可选，在使用退款|打款|红包时需要）
+            //'ssl_key'        => '',
+            //'ssl_cer'        => '',
+            // 缓存目录配置（可选，需拥有读写权限）
+            //'cache_path'     => '',
+        ];
+
+        $this->serviceBizProcess($config);
+    }
+
+    private function serviceBizProcess($config) {
         $receier = new \WeChat\Receive($config);
         $message = $receier->getReceive();
         $msgType = $receier->getMsgType();
-
         switch ($msgType) {
             case 'event':
                 //return '收到事件消息';
@@ -71,54 +93,6 @@ class WeixinApiController extends Controller
                 //return '收到其它消息';
                 break;
         }
-        /*
-        $app = app('wechat.official_account');
-        //$app->server->push(TextMessageHandler::class,Message::TEXT);
-        //$app->server->push(EventMessageHandler::class,Message::EVENT);
-        //$app->server->push(OtherMessageHandler::class,Message::ALL);
-       $app->server->push(function($message){
-            Log::debug("message:".json_encode($message));
-            switch ($message['MsgType']) {
-                case 'event':
-                    //return '收到事件消息';
-                    break;
-                case 'text':
-                    $handler = new TextMessageHandler();
-                    return $handler->handle($message);
-                    //return '收到文字消息';
-                    break;
-                case 'image':
-                    //return '收到图片消息';
-                    break;
-                case 'voice':
-                    //return '收到语音消息';
-                    break;
-                case 'video':
-                    //return '收到视频消息';
-                    break;
-                case 'location':
-                    //return '收到坐标消息';
-                    break;
-                case 'link':
-                    //return '收到链接消息';
-                    break;
-                // ... 其它消息
-                default:
-                    return '收到其它消息';
-                    break;
-
-            }
-            return "Success";
-        });
-
-        return $app->server->serve();
-        */
-    }
-
-    public function miniProgramServe(Request $request) {
-        $app = app('wechat.mini_program');
-        $app->server->push(OtherMessageHandler::class,Message::ALL);
-        return $app->server->serve();
     }
 
 }
