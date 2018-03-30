@@ -75,6 +75,18 @@ class WechatBizAccoutRegisterDbTools
         }
     }
 
+    /**
+     * 丢弃当前错误的order，以便重新开始
+     * @param $bizOrder
+     */
+    public static function resetBizOrder(&$bizOrder) {
+        try {
+            $bizOrder->status=0;
+            return $bizOrder->save();
+        } catch (\Exception $exception) {
+            return false;
+        }
+    }
     public static function updateBizOrder(&$bizOrder,$step,$value,$deployServer="ps-001") {
         $oldProcessStatus = $bizOrder->process_status;
 

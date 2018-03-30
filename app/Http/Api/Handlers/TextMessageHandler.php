@@ -152,9 +152,18 @@ class TextMessageHandler implements WeChatMessageHandler
         if ($update_code!=$bizOrder->update_code) {
             return "更新代码错误。";
         }
-        if(!in_array($cmd,['appid','secret'])) {
+        if(!in_array($cmd,['appid','secret','reset'])) {
             return "指令错误。只接受：appid或secret";
         }
+
+        if($cmd=='reset') {
+            if(WechatBizAccoutRegisterDbTools::resetBizOrder($bizOrder)) {
+                return "重置成功，请重新开始注册申请。";
+            } else {
+                return "重置失败，请稍后再试。";
+            }
+        }
+        //TODO reset
         $value=trim($value);
         if(empty($value)) {
             return "内容不能空";
@@ -163,7 +172,7 @@ class TextMessageHandler implements WeChatMessageHandler
         $step = $cmd=="appid"?1:2;
         $result =  WechatBizAccoutRegisterDbTools::updateBizOrder($bizOrder,$step,$value);
         if(empty($result)) {
-            return "操作更新失败";
+            return "操作更新失败。如果一直出现，可能是你的appid和别人的重了，你可以输入:（" . $update_code . ",reset,OK） 来重新注册";
         } else {
             return $step==1?"操作成功，请继续输入微信secret完成注册":"操作成功，等待后台审核中。可输入命令：（什么情况）查看审核结果";
         }
