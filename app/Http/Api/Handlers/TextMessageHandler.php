@@ -182,8 +182,8 @@ class TextMessageHandler implements WeChatMessageHandler
                 return "你的微信账号appid：" . $wxAccount->wx_appid . " 被禁用";
             case 1:
 
-                if($wxAccount->runing_status ==1)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 已经通过并运行正常，可以正常发送消息了";
-                if($wxAccount->runing_status ==0)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 运行错误，错误信息：" . $wxAccount->error_message;
+                if($wxAccount->running_status ==1)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 已经通过并运行正常，可以正常发送消息了";
+                if($wxAccount->running_status ==0)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 运行错误，错误信息：" . $wxAccount->error_message;
                 break;
         }
         return "不知道呢";
