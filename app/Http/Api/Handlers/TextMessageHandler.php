@@ -10,10 +10,9 @@ namespace App\Http\Api\Handlers;
 
 
 use App\Common\Tools\UserTools;
-use EasyWeChat\Kernel\Contracts\EventHandlerInterface;
-use EasyWeChat\Kernel\Messages\Article;
+
 use Log;
-class TextMessageHandler implements EventHandlerInterface
+class TextMessageHandler implements WeChatMessageHandler
 {
     public function handle($payload = null)
     {
@@ -50,11 +49,9 @@ class TextMessageHandler implements EventHandlerInterface
         //
         //TODO 简单独立的命令优先级最高，比如查我的openid
         if ($content=="我是谁") {
-            $article = new Article();
-            $article->title  = "你是谁";
-            $article->author = "jeffrey";
-            $article->content = "你的openid:" . $openid;
-            return $article;
+
+            $content = "你的openid:" . $openid;
+            return $content;
         }
 
         if ($content =="什么情况") {

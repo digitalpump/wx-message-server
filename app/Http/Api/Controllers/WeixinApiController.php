@@ -22,16 +22,18 @@ class WeixinApiController extends Controller
     public function officialServe(Request $request) {
 
         $app = app('wechat.official_account');
-        $app->server->push(TextMessageHandler::class,Message::TEXT);
-        $app->server->push(EventMessageHandler::class,Message::EVENT);
-        $app->server->push(OtherMessageHandler::class,Message::ALL);
-       /* $app->server->push(function($message){
+        //$app->server->push(TextMessageHandler::class,Message::TEXT);
+        //$app->server->push(EventMessageHandler::class,Message::EVENT);
+        //$app->server->push(OtherMessageHandler::class,Message::ALL);
+       $app->server->push(function($message){
             Log::debug("message:".json_encode($message));
             switch ($message['MsgType']) {
                 case 'event':
                     //return '收到事件消息';
                     break;
                 case 'text':
+                    $handler = new TextMessageHandler();
+                    return $handler->handle($message);
                     //return '收到文字消息';
                     break;
                 case 'image':
@@ -56,7 +58,7 @@ class WeixinApiController extends Controller
 
             }
             return "Success";
-        });*/
+        });
 
         return $app->server->serve();
     }
