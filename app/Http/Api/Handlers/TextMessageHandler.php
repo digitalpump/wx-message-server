@@ -142,7 +142,7 @@ class TextMessageHandler implements WeChatMessageHandler
         Log::debug("content=".$content);
         $temp = preg_split("/[\s,，]+/",$content);
         Log::debug("after split=".json_encode($temp));
-        if (sizeof($temp)<=3) {
+        if (sizeof($temp)<3) {
             return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
         }
         list($update_code,$cmd,$value) = $temp;
