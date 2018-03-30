@@ -12,6 +12,8 @@ namespace App\Common\Tools;
 use App\Models\BizOrder;
 use App\Models\OauthUser;
 use App\Models\User;
+use App\Models\VendorAppSecret;
+use App\Models\VendorWxAccount;
 use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Log;
@@ -126,7 +128,7 @@ class UserTools
 
     public static function getBizOrder($uid) {
         //后期放到redis
-        return User::find($uid)->bizorders()->where('process_status','!=',8)->first();
+        return User::find($uid)->bizorders()->where('process_status','!=',6)->first();
     }
 
     public static function createNewBizOrder($uid) {
@@ -141,6 +143,42 @@ class UserTools
         } catch (\Exception $exception) {
             return null;
         }
+    }
+
+    public static function updateBizOrder(&$bizOrder,$step,$value) {
+        $oldProcessStatus = $bizOrder->process_status;
+
+        if($step ==1) {
+            $bizOrder->process_status = $oldProcessStatus+2;
+            $bizOrder->app_id = $value;
+        } else {
+            $bizOrder->process_status = $oldProcessStatus+4;
+            $bizOrder->app_secret = $value;
+        }
+        try {
+            if($bizOrder->process_status == 6) {
+                //TODO 完成
+                $appid = $oldProcessStatus==2?$bizOrder->app_id:$value;
+                $secret = $oldProcessStatus==4?$bizOrder->app_secret:$value;
+                return DB::transaction(function () use (&$bizOrder){
+
+                    $wxAccount = new VendorWxAccount();
+                    $wxAccount->vendor_id = $bizOrder->user_id;
+                    $wxAccount->account_name = "offical_account";
+                    $wxAccount->wx_appid = $bizOrder->app_id;
+                    $wxAccount->wx_secret = $bizOrder->app_secret;
+                    $wxAccount->deploy_server = "ps-001";
+                    $wxAccount->save();
+                    return $bizOrder->save();
+                });
+            } else {
+                return $bizOrder->save();
+            }
+        } catch (\Exception $exception) {
+            Log::err($exception->getMessage());
+            return false;
+        }
+
     }
 
     public static function getWxMiniProgramSessionKeyById($uid) {

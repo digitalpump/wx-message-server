@@ -11,6 +11,7 @@ namespace App\Http\Api\Handlers;
 
 use App\Common\Tools\UserTools;
 
+use function GuzzleHttp\default_ca_bundle;
 use Log;
 class TextMessageHandler implements WeChatMessageHandler
 {
@@ -22,10 +23,13 @@ class TextMessageHandler implements WeChatMessageHandler
         $openid = $payload['FromUserName'];
         $content = trim($payload['Content']);
         $user = UserTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
-        if ($user==null) {
+        if ($user == null) {
             Log::error("Login failed:".json_encode($payload));
             return "糟糕，我不认识你。";
         }
+
+        //TODO 登录后获取用户ID , 通过appid+ openid  key 保存倒redis,没必要，用户量必然不大
+
         if ($user->role==1) {
             return "老板你好。我会执行老板命令";
         }
@@ -35,12 +39,6 @@ class TextMessageHandler implements WeChatMessageHandler
         if(!empty($bizOrder)) {
             $haveInHandBiz = true;
         }
-
-
-        //自动用户注册
-        //-->并返回用户ID 和 角色
-        //登录后获取用户ID , 通过appid+ openid  key 保存倒redis
-
 
         //定义命令 ID 1223   char['我是谁','who an i']
 
@@ -70,14 +68,8 @@ class TextMessageHandler implements WeChatMessageHandler
          */
 
         if (trim($content)=="我要上天") {
-            if($haveInHandBiz) {
-                return "";
-            }
-            $bizOrder = UserTools::createNewBizOrder($user->id);
-            //TODO 查用户有没有注册角色
-            //有注册成为商家
+            if(empty($bizOrder)) $bizOrder = UserTools::createNewBizOrder($user->id);
 
-            //无注册，发送注册验证码
 
             //功能：
 
@@ -104,15 +96,60 @@ class TextMessageHandler implements WeChatMessageHandler
              *
              *
              */
-            return "OK. 请继续完成您的配置，请输入：".$bizOrder->update_code  .",appid,你的微信appid";
+            return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+        }
+
+        if($haveInHandBiz) {
+            if(empty($content)) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+            return $this->doContinueBizOrder($bizOrder,$content);
+        } else {
+            return "命令参考：我是谁|什么情况";
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
        //Log::debug("@TextMessageHandler Content:".$payload['Content']);
     }
 
 
-    private function doContinueBizOrder($bizOrder,$content) {
+    private function getPromptByProcessStatus($status,$update_code) {
+        switch ($status){
+            case 0:
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,号隔开";
+                break;
+            case 2:
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",secret,你的微信app_secret)中间以,号隔开";
+                break;
+            case 4:
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,号隔开";
+                break;
+            case 6:
+                return "你已经完成注册，请输入（什么情况）查询结果";
+                break;
+        }
+    }
 
+    private function doContinueBizOrder(&$bizOrder,$content) {
+
+        list($update_code,$cmd,$value) = explode(",",$content);
+
+        if(empty($update_code)||empty($cmd)||empty($value)) return "命令行正确格式如下：108908,appid或者secret,对就的微信appid或secret内容";
+
+        if ($update_code!=$bizOrder->update_code) {
+            return "更新代码错误。";
+        }
+        if(!in_array($cmd,['appid','secret'])) {
+            return "指令错误。只接受：appid或secret";
+        }
+        $value=trim($value);
+        if(empty($value)) {
+            return "内容不能空";
+        }
+        $step = $cmd=="appid"?1:2;
+        $result =  UserTools::updateBizOrder($bizOrder,$step,$value);
+        if(empty($result)) {
+            return "操作更新失败";
+        } else {
+            return "操作成功";
+        }
     }
 
     /**

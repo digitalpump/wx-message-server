@@ -42,4 +42,12 @@ class User extends Model
     public function bizorders() {
         return $this->hasMany('App\Models\BizOrder','user_id');
     }
+
+    public function wxaccount() {
+        return $this->hasMany('App\Models\VendorWxAccount','vendor_id');
+    }
+
+    public function appacount() {
+        return $this->hasOne('App\Models\VendorAppSecret','vendor_id');
+    }
 }
