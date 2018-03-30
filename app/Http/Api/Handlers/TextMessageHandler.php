@@ -130,7 +130,12 @@ class TextMessageHandler implements WeChatMessageHandler
     private function doContinueBizOrder(&$bizOrder,$content) {
 
         Log::debug("content=".$content);
-        list($update_code,$cmd,$value) = explode(",",$content);
+        $temp = preg_split("/[\s,，]+/",$content);
+        Log::debug("after split=".json_encode($temp));
+        if (sizeof($temp)!=3) {
+            return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+        }
+        list($update_code,$cmd,$value) = $temp;
         Log::debug("$update_code--$cmd--$value");
         if(empty($update_code)||empty($cmd)||empty($value)) return "命令行正确格式如下：108908,appid或者secret,对就的微信appid或secret内容";
 
