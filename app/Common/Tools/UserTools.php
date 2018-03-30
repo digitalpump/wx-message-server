@@ -128,7 +128,7 @@ class UserTools
 
     public static function getBizOrder($uid) {
         //后期放到redis
-        return User::find($uid)->bizorders()->where('process_status','!=',6)->first();
+        return User::find($uid)->bizorders()->first();
     }
 
     public static function createNewBizOrder($uid) {
@@ -168,6 +168,7 @@ class UserTools
                     $wxAccount->wx_appid = $bizOrder->app_id;
                     $wxAccount->wx_secret = $bizOrder->app_secret;
                     $wxAccount->deploy_server = "ps-001";
+                    $wxAccount->status = 0;
                     $wxAccount->save();
                     return $bizOrder->save();
                 });

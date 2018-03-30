@@ -37,7 +37,7 @@ class TextMessageHandler implements WeChatMessageHandler
         $haveInHandBiz = false;
         $bizOrder = UserTools::getBizOrder($user->id);
         if(!empty($bizOrder)) {
-            $haveInHandBiz = true;
+            if($bizOrder->process_status!=6) $haveInHandBiz = true;
         }
 
         //定义命令 ID 1223   char['我是谁','who an i']
@@ -68,7 +68,15 @@ class TextMessageHandler implements WeChatMessageHandler
          */
 
         if (trim($content)=="我要上天") {
-            if(empty($bizOrder)) $bizOrder = UserTools::createNewBizOrder($user->id);
+
+            if ($haveInHandBiz) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+
+            if (empty($bizOrder)) {
+                $bizOrder = UserTools::createNewBizOrder($user->id);
+                return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+            } else {
+                return "你已经完成注册，请输入（什么情况）查询结果";
+            }
 
 
             //功能：
@@ -96,30 +104,33 @@ class TextMessageHandler implements WeChatMessageHandler
              *
              *
              */
-            return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
+
         }
 
         if($haveInHandBiz) {
             //if(empty($content)) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
             return $this->doContinueBizOrder($bizOrder,$content);
         } else {
-            return "命令参考：我是谁|什么情况";
+            return $this->returnHelp();
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
        //Log::debug("@TextMessageHandler Content:".$payload['Content']);
     }
 
+    private function returnHelp(){
+        return "命令参考：我是谁,什么情况,其它密秘指令不告诉你：）";
+    }
 
     private function getPromptByProcessStatus($status,$update_code) {
         switch ($status){
             case 0:
-                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,号隔开";
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,或空格隔开";
                 break;
             case 2:
-                return "请输入括号中的内容完成您的配置：（".$update_code  .",secret,你的微信app_secret)中间以,号隔开";
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",secret,你的微信app_secret)中间以,或空格隔开";
                 break;
             case 4:
-                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,号隔开";
+                return "请输入括号中的内容完成您的配置：（".$update_code  .",appid,你的微信appid)中间以,或空格隔开";
                 break;
             case 6:
                 return "你已经完成注册，请输入（什么情况）查询结果";
@@ -132,7 +143,7 @@ class TextMessageHandler implements WeChatMessageHandler
         Log::debug("content=".$content);
         $temp = preg_split("/[\s,，]+/",$content);
         Log::debug("after split=".json_encode($temp));
-        if (sizeof($temp)!=3) {
+        if (sizeof($temp)<=3) {
             return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
         }
         list($update_code,$cmd,$value) = $temp;
@@ -154,7 +165,7 @@ class TextMessageHandler implements WeChatMessageHandler
         if(empty($result)) {
             return "操作更新失败";
         } else {
-            return "操作成功";
+            return $step==1?"操作成功，请继续输入微信secret完成注册":"操作成功，等待后台审核中。可输入命令：（什么情况）查看审核结果";
         }
     }
 
