@@ -75,7 +75,7 @@ class WechatBizAccoutRegisterDbTools
         }
     }
 
-    public static function updateBizOrder(&$bizOrder,$step,$value) {
+    public static function updateBizOrder(&$bizOrder,$step,$value,$deployServer="ps-001") {
         $oldProcessStatus = $bizOrder->process_status;
 
         if($step ==1) {
@@ -88,15 +88,15 @@ class WechatBizAccoutRegisterDbTools
         try {
             if($bizOrder->process_status == 6) {
 
-                return DB::transaction(function () use (&$bizOrder){
+                return DB::transaction(function () use (&$bizOrder,$deployServer){
 
                     $wxAccount = new VendorWxAccount();
                     $wxAccount->vendor_id = $bizOrder->user_id;
                     $wxAccount->account_name = "offical_account";
                     $wxAccount->wx_appid = $bizOrder->app_id;
                     $wxAccount->wx_secret = $bizOrder->app_secret;
-                    $wxAccount->deploy_server = "ps-001";
-                    $wxAccount->status = 0;
+                    $wxAccount->deploy_server = $deployServer;
+                    $wxAccount->status = -1;
                     $wxAccount->save();
                     return $bizOrder->save();
                 });
@@ -112,7 +112,9 @@ class WechatBizAccoutRegisterDbTools
 
     public static function getWxAccount($uid) {
         try {
-            return VendorWxAccount::where('vendor_id',$uid)->firstOrFail();
+            return VendorWxAccount::where('vendor_id',$uid)
+                ->where('account_name','offical_account')
+                ->firstOrFail();
         }catch (ModelNotFoundException $e) {
             return null;
         }
