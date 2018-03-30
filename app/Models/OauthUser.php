@@ -9,14 +9,14 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class OauthUsers extends Model
+class OauthUser extends Model
 {
     const FROM_WX_MINI_PROGRAM = "miniprogram";
     const FROM_WX_APP = "wxapp";
     const FROM_WX_WEB = "wxweb";
 
-    const UPDATED_AT = 'last_login_time';
-    protected $table = "crs_oauth_users";
+    //const UPDATED_AT = 'last_login_time';
+    protected $table = "oauth_user";
     /*
     from
     open_id
@@ -25,7 +25,7 @@ class OauthUsers extends Model
     last_login_ip
     login_times
     */
-    public function users() {
-        return $this->belongsTo('App\Models\Users','user_id');
+    public function user() {
+        return $this->belongsTo('App\Models\User','user_id');
     }
 }

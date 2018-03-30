@@ -11,7 +11,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Users extends Model
+class User extends Model
 {
     //用户类型
     const USER_TYPE_NORMAL = 2;     //普通用户
@@ -30,20 +30,12 @@ class Users extends Model
     const USER_SEX_BOY = 1;
     const USER_SEX_GIRL = 2;
 
-    protected $table = "crs_users";
+    protected $table = "user";
     /*
-        third_party_name  default ""
-        avater      defualt ""
-        user_type   default 2
-        user_status default 1
-        nice_name   default "";
-        work_unit_id default 0
-        signature   default null
-        sex defualt 0
-        birthday  defautl null;
+
     */
 
     public function oauths() {
-        return $this->hasMany('App\Models\OauthUsers','user_id');
+        return $this->hasMany('App\Models\OauthUser','user_id');
     }
 }

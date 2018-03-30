@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OauthUsers;
-use App\Models\Users;
+use App\Models\OauthUser;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Log;
 
@@ -32,7 +32,7 @@ class ExampleController extends Controller
     public function hello(Request $request) {
         $user = app('JwtUser')->getUser();
         $id = app('JwtUser')->getId();
-        $oauth = Users::find($id)->oauths()->where('from',OauthUsers::FROM_WX_MINI_PROGRAM)->first();
+        $oauth = User::find($id)->oauths()->where('from',OauthUser::FROM_WX_MINI_PROGRAM)->first();
         return $this->success([['user'=>$user,'oauth'=>$oauth],'info'=>'hello lumen world']);
     }
 

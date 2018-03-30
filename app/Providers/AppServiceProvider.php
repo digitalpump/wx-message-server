@@ -17,12 +17,12 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //保存和获取用户信息的单例
-        $this->app->singleton("JwtUser",function($app) {
+       /* $this->app->singleton("JwtUser",function($app) {
             return new JwtUser();
         });
         $this->app->singleton("JwtConfig",function($app) {
            return new JwtConfigure();
-        });
+        });*/
 
     }
 }

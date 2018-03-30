@@ -9,8 +9,8 @@
 namespace App\Common\Tools;
 
 
-use App\Models\OauthUsers;
-use App\Models\Users;
+use App\Models\OauthUser;
+use App\Models\User;
 use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Log;
@@ -47,8 +47,8 @@ class UserTools
         }
 
         try {
-            $oauth_model = OauthUsers::where('openid',$responseAccessToken->openid)
-                ->where('from',OauthUsers::FROM_WX_MINI_PROGRAM)
+            $oauth_model = OauthUser::where('openid',$responseAccessToken->openid)
+                ->where('from',OauthUser::FROM_WX_MINI_PROGRAM)
                 ->firstOrFail();
             $users = $oauth_model->users;
             $oauth_model->last_login_ip = $ip;
@@ -68,13 +68,13 @@ class UserTools
     public static function createNewMiniProgram($miniProaramAccessToken,$ip="") {
         try {
             $users = DB::transaction(function () use ($miniProaramAccessToken,$ip){
-                $oauth = new OauthUsers();
+                $oauth = new OauthUser();
                 $oauth->openid = $miniProaramAccessToken->openid;
                 if(!empty($miniProaramAccessToken->unionid)) $oauth->unionid = $miniProaramAccessToken->unionid;
                 $oauth->session_key = $miniProaramAccessToken->session_key;
                 $oauth->last_login_ip = $ip;
-                $oauth->from = OauthUsers::FROM_WX_MINI_PROGRAM;
-                $users = new Users();
+                $oauth->from = OauthUser::FROM_WX_MINI_PROGRAM;
+                $users = new User();
                 $users->nice_name = "游客_" . str_random(8);
                 $users->save();
                 $users->oauths()->save($oauth);
@@ -88,14 +88,47 @@ class UserTools
 
     }
 
+    public static function weChatUserRegisterAndLogin($appid,$openid,$unionid="") {
+        try {
+            $oauth = OauthUser::where('openid',$openid)
+                ->where('fromwhere',$appid)
+                ->firstOrFail();
+            return $oauth->user;
+
+        }catch (ModelNotFoundException $e) {
+            return static::createNewWeChatUser($appid,$openid,$unionid);
+        }
+
+    }
+
+    public static function createNewWeChatUser($appid,$openid,$unionid="") {
+        try {
+            return DB::transaction(function () use ($appid,$openid,$unionid){
+                $oauth = new OauthUser();
+                $oauth->openid = $openid;
+                $oauth->unionid = $unionid;
+                $oauth->fromwhere = $appid;
+                $user = new User();
+                $user->nickname = "爽客_" . str_random(8);
+                $user->save();
+                $user->oauths()->save($oauth);
+                return $user;
+            });
+
+        } catch (\Exception $e) {
+            Log::err($e->getMessage());
+            return null;
+        }
+    }
+
     public static function getWxMiniProgramSessionKeyById($uid) {
-        $oauth = Users::find($uid)->oauths()->where('from',OauthUsers::FROM_WX_MINI_PROGRAM)->first();
+        $oauth = User::find($uid)->oauths()->where('from',OauthUser::FROM_WX_MINI_PROGRAM)->first();
         if(empty($oauth)) return null;
         return $oauth->session_key;
     }
 
     public static function updateUserWithInfoFromWx($uid,$data) {
-        $user = Users::find($uid);
+        $user = User::find($uid);
         if(empty($user)) return;
         $user->avater = $data->avatarUrl;
         $user->third_party_name = $data->nickName;

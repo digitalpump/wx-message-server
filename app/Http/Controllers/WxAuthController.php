@@ -11,7 +11,7 @@ namespace App\Http\Controllers;
 
 use App\Common\Tools\HttpStatusCode;
 use App\Common\Tools\UserTools;
-use App\Models\OauthUsers;
+use App\Models\OauthUser;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Common\Tools\RedisTools;

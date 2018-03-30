@@ -9,7 +9,7 @@
 namespace App\Common\Tools\Jwt;
 
 
-use App\Models\Users;
+use App\Models\User;
 
 class JwtUser
 {
@@ -30,7 +30,7 @@ class JwtUser
 
     public function getUser() {
         if(empty($this->user)) {
-            $this->user = Users::find($this->id);
+            $this->user = User::find($this->id);
         }
         return $this->user;
     }
