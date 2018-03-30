@@ -9,9 +9,9 @@
 namespace App\Http\Api\Handlers;
 
 
-use App\Common\Tools\UserTools;
+use App\Common\Tools\CommonTools;
+use App\Common\Tools\Db\WechatBizAccoutRegisterDbTools;
 
-use function GuzzleHttp\default_ca_bundle;
 use Log;
 class TextMessageHandler implements WeChatMessageHandler
 {
@@ -22,7 +22,7 @@ class TextMessageHandler implements WeChatMessageHandler
         $msgId = $payload['MsgId'];
         $openid = $payload['FromUserName'];
         $content = $payload['Content'];
-        $user = UserTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
+        $user = WechatBizAccoutRegisterDbTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
         if ($user == null) {
             Log::error("Login failed:".json_encode($payload));
             return "糟糕，我不认识你。";
@@ -35,7 +35,7 @@ class TextMessageHandler implements WeChatMessageHandler
         }
 
         $haveInHandBiz = false;
-        $bizOrder = UserTools::getBizOrder($user->id);
+        $bizOrder = WechatBizAccoutRegisterDbTools::getBizOrder($user->id);
         if(!empty($bizOrder)) {
             if($bizOrder->process_status!=6) $haveInHandBiz = true;
         }
@@ -48,8 +48,7 @@ class TextMessageHandler implements WeChatMessageHandler
         //TODO 简单独立的命令优先级最高，比如查我的openid
         if ($content=="我是谁") {
 
-            $content = "你的openid:" . $openid;
-            return $content;
+            return $openid;
         }
 
         if ($content =="什么情况") {
@@ -72,7 +71,7 @@ class TextMessageHandler implements WeChatMessageHandler
             if ($haveInHandBiz) return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
 
             if (empty($bizOrder)) {
-                $bizOrder = UserTools::createNewBizOrder($user->id);
+                $bizOrder = WechatBizAccoutRegisterDbTools::createNewBizOrder($user->id);
                 return $this->getPromptByProcessStatus($bizOrder->process_status,$bizOrder->update_code);
             } else {
                 return "你已经完成注册，请输入（什么情况）查询结果";
@@ -160,8 +159,9 @@ class TextMessageHandler implements WeChatMessageHandler
         if(empty($value)) {
             return "内容不能空";
         }
+        if(!CommonTools::alnumCheck($value)) return "输入的微信appid 或 secret不符合要求。";
         $step = $cmd=="appid"?1:2;
-        $result =  UserTools::updateBizOrder($bizOrder,$step,$value);
+        $result =  WechatBizAccoutRegisterDbTools::updateBizOrder($bizOrder,$step,$value);
         if(empty($result)) {
             return "操作更新失败";
         } else {
@@ -173,6 +173,19 @@ class TextMessageHandler implements WeChatMessageHandler
      * @param $uid
      */
     private function queryProcessStatus($uid) {
+        $wxAccount = WechatBizAccoutRegisterDbTools::getWxAccount($uid);
+        if(empty($wxAccount)) return "不知道呢";
+        switch ($wxAccount->status){
+            case -1:
+                return "你的微信账号appid：" . $wxAccount->wx_appid . " 还在审核中";
+            case 0:
+                return "你的微信账号appid：" . $wxAccount->wx_appid . " 被禁用";
+            case 1:
+
+                if($wxAccount->runing_status ==1)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 已经通过并运行正常，可以正常发送消息了";
+                if($wxAccount->runing_status ==0)  return "你的微信账号appid：" . $wxAccount->wx_appid . " 运行错误，错误信息：" . $wxAccount->error_message;
+                break;
+        }
         return "不知道呢";
     }
 

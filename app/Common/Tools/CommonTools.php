@@ -49,4 +49,11 @@ class CommonTools
         return $output;
     }
 
+    public static function alnumCheck($value,$min=5,$max=32) {
+        $len = strlen($value);
+        if($len<$min ||$len>$max) return false;
+        return ctype_alnum($value);
+
+    }
+
 }
