@@ -22,7 +22,17 @@ class TextMessageHandler implements EventHandlerInterface
         $openid = $payload['FromUserName'];
         $content = $payload['Content'];
         $user = UserTools::weChatUserRegisterAndLogin($payload['ToUserName'],$openid);
-        Log::debug("user=".json_encode($user));
+        if ($user==null) {
+            Log::error("Login failed:".json_encode($payload));
+            return "糟糕，我不认识你。";
+        }
+        $bizOrder = UserTools::getBizOrder($user->id);
+        if(!empty($bizOrder)) {
+            return "你得继续处理您的业务啊。 update code=" . $bizOrder->update_code;
+        }
+        if ($user->role==1) {
+            return "老板你好。我会执行老板命令";
+        }
         //自动用户注册
         //-->并返回用户ID 和 角色
         //登录后获取用户ID , 通过appid+ openid  key 保存倒redis
@@ -45,11 +55,7 @@ class TextMessageHandler implements EventHandlerInterface
             //运行不正常，错误信息
         }
 
-        if ($openid=='ofSvBt7vapubGyEEZV9ktIIv__Ik') {
 
-            //TODO boss command.
-            return "老板你好。";
-        }
 
         //TODO 根据用户 openid 生成一个组合命令的（订单） 记录用户command  和 组合command的状态机 ，有时效性，过60分钟未处理自动清理
 
@@ -61,6 +67,7 @@ class TextMessageHandler implements EventHandlerInterface
          */
 
         if (trim($content)=="我要上天") {
+            $bizOrder = UserTools::createNewBizOrder($user->id);
             //TODO 查用户有没有注册角色
             //有注册成为商家
 
@@ -80,8 +87,18 @@ class TextMessageHandler implements EventHandlerInterface
              *   用户配合执行命令
              *    更新业务状态，继续下一步
              *
+             *   确认订单信息
+             *
+             *   一项一项确认
+             *
+             *
+             *   对 打 1
+             *   修改  2
+             *
+             *
+             *
              */
-            return "OK.".$openid;
+            return "OK. 请继续完成您的配置：".$bizOrder->update_code;
         }
        //Log::debug("@TextMessageHandler from user:".$payload['FromUserName']);
        //Log::debug("@TextMessageHandler Content:".$payload['Content']);

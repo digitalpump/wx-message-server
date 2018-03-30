@@ -9,6 +9,7 @@
 namespace App\Common\Tools;
 
 
+use App\Models\BizOrder;
 use App\Models\OauthUser;
 use App\Models\User;
 use DB;
@@ -110,6 +111,8 @@ class UserTools
                 $oauth->fromwhere = $appid;
                 $user = new User();
                 $user->nickname = "爽客_" . str_random(8);
+                $user->role = User::USER_TYPE_NORMAL;
+                $user->status = User::USER_STATUS_NORMAL;
                 $user->save();
                 $user->oauths()->save($oauth);
                 return $user;
@@ -117,6 +120,25 @@ class UserTools
 
         } catch (\Exception $e) {
             Log::err($e->getMessage());
+            return null;
+        }
+    }
+
+    public static function getBizOrder($uid) {
+        //后期放到redis
+        return User::find($uid)->bizorders()->where('process_status','!=',8)->first();
+    }
+
+    public static function createNewBizOrder($uid) {
+        //后期直接在redis中他建
+        try {
+            $bizOrder = new BizOrder();
+            $bizOrder->user_id = $uid;
+            $bizOrder->process_status = 0;
+            $bizOrder->update_code = mt_rand(8,10);
+            if(!$bizOrder->save()) return null;
+            return $bizOrder;
+        } catch (\Exception $exception) {
             return null;
         }
     }

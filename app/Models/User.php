@@ -38,4 +38,8 @@ class User extends Model
     public function oauths() {
         return $this->hasMany('App\Models\OauthUser','user_id');
     }
+
+    public function bizorders() {
+        return $this->hasMany('App\Models\BizOrder','user_id');
+    }
 }
