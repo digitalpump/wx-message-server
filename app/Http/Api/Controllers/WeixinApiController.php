@@ -111,11 +111,12 @@ class WeixinApiController extends Controller
         $message = $receier->getReceive();
 
         $msgType = $receier->getMsgType();
-
+        $defualtResponse = "命令参考：我是谁,什么情况,其它密秘指令不告诉你：）";
         try {
             switch ($msgType) {
                 case 'event':
                     //return '收到事件消息';
+                    Log::info("Event message:".json_encode($message));
                     $receier->text("收到事件消息")->reply();
                     break;
                 case 'text':
@@ -126,22 +127,27 @@ class WeixinApiController extends Controller
                     break;
                 case 'image':
                     //return '收到图片消息';
+                    $receier->text($defualtResponse)->reply();
                     break;
                 case 'voice':
                     //return '收到语音消息';
+                    $receier->text($defualtResponse)->reply();
                     break;
                 case 'video':
                     //return '收到视频消息';
+                    $receier->text($defualtResponse)->reply();
                     break;
                 case 'location':
                     //return '收到坐标消息';
+                    $receier->text($defualtResponse)->reply();
                     break;
                 case 'link':
                     //return '收到链接消息';
+                    $receier->text($defualtResponse)->reply();
                     break;
                 // ... 其它消息
                 default:
-                    $receier->text("收到其它消息")->reply();
+                    $receier->text("你要开心哦")->reply();
                     //return '收到其它消息';
                     break;
             }
