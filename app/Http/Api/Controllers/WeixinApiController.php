@@ -22,6 +22,24 @@ class WeixinApiController extends Controller
     public function officialServe(Request $request) {
 
         $config = [
+            'token'          => 'DPTk4vwuaPri6J3BTIMVUxA308P3D47W',
+            'appid'          => 'wxee5a497355aabea0',
+            'appsecret'      => '6faba706500908ba3f2735f1f230480f',
+            'encodingaeskey' => 'VgdRwHi3oPzaz5ay7L7tZiIkEfzH8qlUMZAatXWSqkG',
+            // 配置商户支付参数（可选，在使用支付功能时需要）
+            //'mch_id'         => "1235704602",
+            //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
+            // 配置商户支付双向证书目录（可选，在使用退款|打款|红包时需要）
+            //'ssl_key'        => '',
+            //'ssl_cer'        => '',
+            // 缓存目录配置（可选，需拥有读写权限）
+            //'cache_path'     => '',
+        ];
+        $this->serviceBizProcess($config);
+    }
+    public function testOfficialServe(Request $request) {
+
+        $config = [
             'token'          => 'EqfMeTHlYi817bol9t9uZ778JzoG0Kvm',
             'appid'          => 'wxc496505548ed228f',
             'appsecret'      => 'c3d953d56cf61b8578c73b894468c18a',
@@ -60,7 +78,9 @@ class WeixinApiController extends Controller
     private function serviceBizProcess($config) {
         $receier = new \WeChat\Receive($config);
         $message = $receier->getReceive();
+        Log::debug("message=".json_encode($message));
         $msgType = $receier->getMsgType();
+
         switch ($msgType) {
             case 'event':
                 //return '收到事件消息';
