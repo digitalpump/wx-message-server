@@ -20,7 +20,10 @@ class WeixinApiController extends Controller
 {
 
     public function officialServe(Request $request) {
-
+        $echostr = $request->get('echostr');
+        if(!empty($echostr)) {
+            return response($echostr);
+        }
         $config = [
             'token'          => 'DPTk4vwuaPri6J3BTIMVUxA308P3D47W',
             'appid'          => 'wxee5a497355aabea0',
@@ -75,6 +78,10 @@ class WeixinApiController extends Controller
         $this->serviceBizProcess($config);
     }
 
+    private function settingBizProcess($config) {
+        //$receier = new \WeChat\Receive($config);
+        //$receier->reply()
+    }
     private function serviceBizProcess($config) {
         $receier = new \WeChat\Receive($config);
         $message = $receier->getReceive();
