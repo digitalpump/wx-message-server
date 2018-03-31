@@ -36,7 +36,12 @@ class WeixinApiController extends Controller
             // 缓存目录配置（可选，需拥有读写权限）
             //'cache_path'     => '',
         ];
-        $this->serviceBizProcess($config);
+        try {
+            $this->serviceBizProcess($config);
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+
     }
     public function testOfficialServe(Request $request) {
 
