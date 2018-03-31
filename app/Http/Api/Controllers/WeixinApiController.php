@@ -16,17 +16,22 @@ use App\Http\Controllers\Controller;
 use EasyWeChat\Kernel\Messages\Message;
 use Illuminate\Http\Request;
 use Log;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+
 class WeixinApiController extends Controller
 {
 
+    /**
+     * 愚公码头公众号服务接口
+     * @param Request $request
+     */
     public function officialServe(Request $request) {
-        $echostr = $request->get('echostr');
-        Log::debug("echostr=".$echostr);
+
         $config = [
-            'token'          => 'DPTk4vwuaPri6J3BTIMVUxA308P3D47W',
-            'appid'          => 'wxee5a497355aabea0',
-            'appsecret'      => '6faba706500908ba3f2735f1f230480f',
-            'encodingaeskey' => 'VgdRwHi3oPzaz5ay7L7tZiIkEfzH8qlUMZAatXWSqkG',
+            'token'          => env('WECHAT_FCM_OFFICIAL_ACCOUNT_TOKEN'),
+            'appid'          => env('WECHAT_FCM_OFFICIAL_ACCOUNT_APPID'),
+            'appsecret'      => env('WECHAT_FCM_OFFICIAL_ACCOUNT_SECRET'),
+            'encodingaeskey' => env('WECHAT_FCM_OFFICIAL_ACCOUNT_AES_KEY'),
             // 配置商户支付参数（可选，在使用支付功能时需要）
             //'mch_id'         => "1235704602",
             //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
@@ -36,20 +41,22 @@ class WeixinApiController extends Controller
             // 缓存目录配置（可选，需拥有读写权限）
             //'cache_path'     => '',
         ];
-        try {
-            $this->serviceBizProcess($config);
-        } catch (\Exception $exception) {
-            Log::error($exception->getMessage());
-        }
+
+        $this->serviceBizProcess($config);
 
     }
+
+    /**
+     * 测试公众号服务接口
+     * @param Request $request
+     */
     public function testOfficialServe(Request $request) {
 
         $config = [
-            'token'          => 'EqfMeTHlYi817bol9t9uZ778JzoG0Kvm',
-            'appid'          => 'wxc496505548ed228f',
-            'appsecret'      => 'c3d953d56cf61b8578c73b894468c18a',
-            'encodingaeskey' => '',
+            'token'          => env('WECHAT_TEST_OFFICIAL_ACCOUNT_TOKEN'),
+            'appid'          => env('WECHAT_TEST_OFFICIAL_ACCOUNT_APPID'),
+            'appsecret'      => env('WECHAT_TEST_OFFICIAL_ACCOUNT_SECRET'),
+            'encodingaeskey' => env('WECHAT_TEST_OFFICIAL_ACCOUNT_AES_KEY'),
             // 配置商户支付参数（可选，在使用支付功能时需要）
             //'mch_id'         => "1235704602",
             //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
@@ -62,12 +69,16 @@ class WeixinApiController extends Controller
         $this->serviceBizProcess($config);
     }
 
+    /**
+     * 小程序服务接口
+     * @param Request $request
+     */
     public function miniProgramServe(Request $request) {
         $config = [
-            'token'          => 'wJ5UKoj6Z99jGcs1VqE9bUQN54nXlb25',
-            'appid'          => 'wxdfd474a204719893',
-            'appsecret'      => '30270ce9f2b7463e4720995cdc220c6c',
-            'encodingaeskey' => 'sR2iEGvc2MHo8AEwn1GSj7W3g3HAwikNqjmkENc6bzz',
+            'token'          => env('WECHAT_MINI_PROGRAM_TOKEN'),
+            'appid'          => env('WECHAT_MINI_PROGRAM_APPID'),
+            'appsecret'      => env('WECHAT_MINI_PROGRAM_SECRET'),
+            'encodingaeskey' => env('WECHAT_MINI_PROGRAM_AES_KEY'),
             // 配置商户支付参数（可选，在使用支付功能时需要）
             //'mch_id'         => "1235704602",
             //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
@@ -86,44 +97,59 @@ class WeixinApiController extends Controller
         //$receier->reply()
     }
     private function serviceBizProcess($config) {
-        Log::debug("@serviceBizProcess");
-        $receier = new \WeChat\Receive($config);
+
+        try {
+            $receier = new \WeChat\Receive($config);
+        } catch (FatalThrowableError $exception) {
+            Log::error($exception->getMessage());
+            return "服务器身体不适，请稍后再试。";
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
+            return "服务器罢工了，请稍后再试。";
+        }
+
         $message = $receier->getReceive();
-        Log::debug("message=".json_encode($message));
+
         $msgType = $receier->getMsgType();
 
-        switch ($msgType) {
-            case 'event':
-                //return '收到事件消息';
-                $receier->text("收到事件消息")->reply();
-                break;
-            case 'text':
-                $handler = new TextMessageHandler();
-                //return $handler->handle($message);
-                $receier->text($handler->handle($message))->reply();
-                //return '收到文字消息';
-                break;
-            case 'image':
-                //return '收到图片消息';
-                break;
-            case 'voice':
-                //return '收到语音消息';
-                break;
-            case 'video':
-                //return '收到视频消息';
-                break;
-            case 'location':
-                //return '收到坐标消息';
-                break;
-            case 'link':
-                //return '收到链接消息';
-                break;
-            // ... 其它消息
-            default:
-                $receier->text("收到其它消息")->reply();
-                //return '收到其它消息';
-                break;
+        try {
+            switch ($msgType) {
+                case 'event':
+                    //return '收到事件消息';
+                    $receier->text("收到事件消息")->reply();
+                    break;
+                case 'text':
+                    $handler = new TextMessageHandler();
+                    //return $handler->handle($message);
+                    $receier->text($handler->handle($message))->reply();
+                    //return '收到文字消息';
+                    break;
+                case 'image':
+                    //return '收到图片消息';
+                    break;
+                case 'voice':
+                    //return '收到语音消息';
+                    break;
+                case 'video':
+                    //return '收到视频消息';
+                    break;
+                case 'location':
+                    //return '收到坐标消息';
+                    break;
+                case 'link':
+                    //return '收到链接消息';
+                    break;
+                // ... 其它消息
+                default:
+                    $receier->text("收到其它消息")->reply();
+                    //return '收到其它消息';
+                    break;
+            }
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
+            return "服务器宝宝病了，请稍后再试。";
         }
+
     }
 
 }
