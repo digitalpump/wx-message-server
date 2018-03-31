@@ -109,15 +109,23 @@ class WeixinApiController extends Controller
         }
 
         $message = $receier->getReceive();
-
+        Log::info("message:".json_encode($message));
         $msgType = $receier->getMsgType();
         $defualtResponse = "命令参考：我是谁,什么情况,其它密秘指令不告诉你：）";
         try {
             switch ($msgType) {
                 case 'event':
                     //return '收到事件消息';
-                    Log::info("Event message:".json_encode($message));
-                    $receier->text("收到事件消息")->reply();
+                    if ($message['Event']=="subscribe") {
+                        //记录关注时间
+                        $receier->text("你终于来了，服务器都等超时了")->reply();
+                    } else if($message['Event']=="unsubscribe") {
+                        //记录取消息关注时间--->写入取关用户记录表，uid,openid,加入时间，取关时间，总计停留时长（多少分钟）
+                        //TODO 用户取关操作
+                    } else {
+                        $receier->text("收到事件消息")->reply();
+                    }
+
                     break;
                 case 'text':
                     $handler = new TextMessageHandler();
