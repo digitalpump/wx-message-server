@@ -21,9 +21,7 @@ class WeixinApiController extends Controller
 
     public function officialServe(Request $request) {
         $echostr = $request->get('echostr');
-        if(!empty($echostr)) {
-            return response($echostr);
-        }
+        Log::debug("echostr=".$echostr);
         $config = [
             'token'          => 'DPTk4vwuaPri6J3BTIMVUxA308P3D47W',
             'appid'          => 'wxee5a497355aabea0',
@@ -83,6 +81,7 @@ class WeixinApiController extends Controller
         //$receier->reply()
     }
     private function serviceBizProcess($config) {
+        Log::debug("@serviceBizProcess");
         $receier = new \WeChat\Receive($config);
         $message = $receier->getReceive();
         Log::debug("message=".json_encode($message));
