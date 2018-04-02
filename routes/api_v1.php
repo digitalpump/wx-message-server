@@ -15,7 +15,7 @@
 
 //}
 
-$router->get('/service','MessageApiController@wxServe');
+$router->get('/serve/monitor','WeixinServeApiController@monitor');
 //$router->post('/login/email','JWTAuthController@emailLogin');
 //$router->post('/login/weixin','JWTAuthController@wxLogin');
 //$router->post('/login/miniprogram','JWTAuthController@wxMiniProgramLogin');

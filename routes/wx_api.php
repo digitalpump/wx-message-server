@@ -5,9 +5,10 @@
  * Date: 2018/3/29
  * Time: 15:58
  */
-$router->get('/service','WeixinApiController@testOfficialServe');
-$router->post('/service','WeixinApiController@testOfficialServe');
-$router->get('/serve/miniprogram','WeixinApiController@miniProgramServe');
-$router->post('/serve/miniprogram','WeixinApiController@miniProgramServe');
-$router->get('/serve/foolisholdcodingman','WeixinApiController@officialServe');
-$router->post('/serve/foolisholdcodingman','WeixinApiController@officialServe');
+$router->get('/service','WeixinServeApiController@testOfficialServe');
+$router->post('/service','WeixinServeApiController@testOfficialServe');
+$router->get('/serve/miniprogram','WeixinServeApiController@miniProgramServe');
+$router->post('/serve/miniprogram','WeixinServeApiController@miniProgramServe');
+$router->get('/serve/foolisholdcodingman','WeixinServeApiController@officialServe');
+$router->post('/serve/foolisholdcodingman','WeixinServeApiController@officialServe');
+

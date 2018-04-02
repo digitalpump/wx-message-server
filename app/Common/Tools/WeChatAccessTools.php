@@ -12,7 +12,7 @@ namespace App\Common\Tools;
 use App\Common\Tools\Configure\WeixinConfigure;
 use GuzzleHttp\Client;
 use Log;
-class WxTokenTools
+class WeChatAccessTools
 {
 
     const WX_ACCESS_TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token";
@@ -23,6 +23,16 @@ class WxTokenTools
 
     const WX_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     const WX_TEMPLATE_MESSAGE_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=";
+
+    #for customer
+    const CUSTOMER_ADD_URL = "https://api.weixin.qq.com/customservice/kfaccount/add?access_token=";
+    const CUSTOMER_UPDATE_URL = "https://api.weixin.qq.com/customservice/kfaccount/update?access_token=";
+    const CUSTOMER_DELETE_URL = "https://api.weixin.qq.com/customservice/kfaccount/del?access_token=";
+
+    //kf_account=KFACCOUNT&access_token=ACCESS_TOKEN
+    const CUSTOMER_UPLOADHEADING_URL = "http://api.weixin.qq.com/customservice/kfaccount/uploadheadimg";
+    const CUSTOMER_LIST_URL = "https://api.weixin.qq.com/cgi-bin/customservice/getkflist?access_token=";
+    const CUSTOMER_SEND_MESSAGE_URL = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=";
 
     /*
    //正常返回的JSON数据包
@@ -61,7 +71,7 @@ class WxTokenTools
         $httpClient = new Client();
         try {
 
-            $response = $httpClient->request('GET', WxTokenTools::WX_JSCODE2SESSION_URL
+            $response = $httpClient->request('GET', WeChatAccessTools::WX_JSCODE2SESSION_URL
                 , ['query' => ['appid' => $appid, 'secret' => $secret, 'js_code' => $code, 'grant_type' => 'authorization_code']]);
 
             if ($response->getStatusCode() != 200) {
@@ -99,7 +109,7 @@ class WxTokenTools
         }
         $httpClient = new Client();
         try {
-            $response = $httpClient->request('GET', WxTokenTools::WX_ACCESS_TOKEN_URL
+            $response = $httpClient->request('GET', WeChatAccessTools::WX_ACCESS_TOKEN_URL
                 , ['query' => ['appid' => $appid, 'secret' => $secret, 'code' => $code, 'grant_type' => 'authorization_code']]);
 
             if ($response->getStatusCode() != 200) {
@@ -130,7 +140,7 @@ class WxTokenTools
 
         $httpClient = new Client();
         try {
-            $response = $httpClient->request('GET',WxTokenTools::WX_REFRESH_TOKEN_URL
+            $response = $httpClient->request('GET',WeChatAccessTools::WX_REFRESH_TOKEN_URL
                 ,['query'=>['appid'=>$appid,'refresh_token'=>$refreshToken,'grant_type'=>'refresh_token']]);
             if ($response->getStatusCode() != 200 ) {
                 return null;
@@ -173,7 +183,7 @@ class WxTokenTools
         $httpClient = new Client();
         try {
 
-            $response = $httpClient->request('GET', WxTokenTools::WX_USERINFO_URL
+            $response = $httpClient->request('GET', WeChatAccessTools::WX_USERINFO_URL
                 , ['query' => ['openid' => $openid, 'access_token' => $accessToken]]);
             if ($response->getStatusCode() != 200) {
                 return null;
@@ -198,7 +208,7 @@ class WxTokenTools
     public static function auth($openid,$accessToken) {
         $httpClient = new Client();
         try {
-            $response = $httpClient->request('GET',WxTokenTools::WX_AUTH_URL
+            $response = $httpClient->request('GET',WeChatAccessTools::WX_AUTH_URL
                 ,['query'=>['openid'=>$openid,'access_token'=>$accessToken]]);
             if ($response->getStatusCode() != 200 ) {
                 return null;
@@ -222,7 +232,7 @@ class WxTokenTools
     public static function getToken($appid,$secret) {
         $httpClient = new Client();
         try {
-            $response = $httpClient->request('GET',WxTokenTools::WX_TOKEN_URL
+            $response = $httpClient->request('GET',WeChatAccessTools::WX_TOKEN_URL
                 ,['query'=>['appid'=>$appid,'secret'=>$secret,'grant_type'=>'client_credential']]);
             if ($response->getStatusCode() != 200 ) {
                 return null;
@@ -245,7 +255,7 @@ class WxTokenTools
         }
      */
     public static function sendTemplateMessage($accessToken,$message) {
-        $url = WxTokenTools::WX_TEMPLATE_MESSAGE_URL . $accessToken;
+        $url = WeChatAccessTools::WX_TEMPLATE_MESSAGE_URL . $accessToken;
         $httpClient = new Client();
         try {
             $response = $httpClient->post($url,['json'=>$message]);
@@ -257,5 +267,76 @@ class WxTokenTools
             return null;
         }
     }
+
+    /**
+     * 微信一般性post 通用请求接口
+     * @param $baseUrl
+     * @param $accssToken
+     * @param $message
+     * @return null|\Psr\Http\Message\StreamInterface
+     */
+    public static function postJsonNormally($baseUrl,$accessToken,$message) {
+        $url = $baseUrl . $accessToken;
+        $httpClient = new Client();
+        try {
+            $response = $httpClient->post($url,['json'=>$message]);
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return $response->getBody();
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
+
+    /**
+     * 微信通用 GET请求接口
+     * @param $baseUrl
+     * @param $accessToken
+     * @param array $extParams
+     * @return null|\Psr\Http\Message\StreamInterface
+     */
+    public static function getNormally($baseUrl,$accessToken,$extParams=[]) {
+        //$url = $baseUrl . $accessToken;
+        $params = array();
+        $params['access_token'] = $accessToken;
+        if(!empty($extParams)) {
+           $params = array_merge($params,$extParams);
+        }
+        $httpClient = new Client();
+        try {
+            $response = $httpClient->request('GET',$baseUrl
+                ,['query'=>$params]);
+
+            if ($response->getStatusCode() != 200 ) {
+                return null;
+            }
+            return $response->getBody();
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
+
+
+    public static function addCustomer($accessToken,$message) {
+        return static::postJsonNormally(WeChatAccessTools::CUSTOMER_ADD_URL,$accessToken,$message);
+    }
+
+    public static function delCustomer($accessToken,$message) {
+        return static::postJsonNormally(WeChatAccessTools::CUSTOMER_DELETE_URL,$accessToken,$message);
+    }
+
+    public static function updateCustomer($accessToken,$message) {
+        return static::postJsonNormally(WeChatAccessTools::CUSTOMER_UPDATE_URL,$accessToken,$message);
+    }
+
+    public static function sendCustomMessage($accessToken,$message) {
+        return static::postJsonNormally(WeChatAccessTools::CUSTOMER_SEND_MESSAGE_URL,$accessToken,$message);
+    }
+
+    public static function getCustomerList($accessToken) {
+        return static::getNormally(WeChatAccessTools::CUSTOMER_LIST_URL,$accessToken);
+    }
+
 
 }

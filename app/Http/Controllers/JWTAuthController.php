@@ -12,7 +12,7 @@ use App\Common\Tools\Jwt\JwtAuth;
 use App\Common\Tools\JwtTokenTools;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\UserTools;
-use App\Common\Tools\WxTokenTools;
+use App\Common\Tools\WeChatAccessTools;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -62,7 +62,7 @@ class JWTAuthController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST, "Code is required.");
         }
         try {
-            $responseAccessToken = WxTokenTools::getAccessToken(app('WxConfig'),$wxCode);
+            $responseAccessToken = WeChatAccessTools::getAccessToken(app('WxConfig'),$wxCode);
 
             if (empty($responseAccessToken)) {
                 return $this->error(HttpStatusCode::UNAUTHORIZED, "Get access token from weixin failed.");
@@ -107,7 +107,7 @@ class JWTAuthController extends Controller
         }
         try {
 
-            $responseAccessToken = WxTokenTools::jscode2Session(app('WxConfig'),$wxCode);
+            $responseAccessToken = WeChatAccessTools::jscode2Session(app('WxConfig'),$wxCode);
 
             if (empty($responseAccessToken)) {
                 return $this->error(HttpStatusCode::NO_CONTENT,"Jscode to session return null.");

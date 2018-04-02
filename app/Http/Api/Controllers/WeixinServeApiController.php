@@ -9,18 +9,38 @@
 namespace App\Http\Api\Controllers;
 
 
-use App\Http\Api\Handlers\EventMessageHandler;
-use App\Http\Api\Handlers\OtherMessageHandler;
+use App\Common\Tools\HttpStatusCode;
 use App\Http\Api\Handlers\TextMessageHandler;
 use App\Http\Controllers\Controller;
-use EasyWeChat\Kernel\Messages\Message;
 use Illuminate\Http\Request;
 use Log;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
-class WeixinApiController extends Controller
+class WeixinServeApiController extends Controller
 {
 
+    public function monitor(Request $request) {
+        $redis_key = "monitor_redis_test_key";
+
+        //TODO test redis set and read
+
+        try {
+            $result = Redis::setex($redis_key,3,"Good job!");
+        } catch (\Exception $exception) {
+            return $this->error(HttpStatusCode::INTERNAL_SERVER_ERROR,$exception->getMessage());
+        }
+
+        if(empty($result)) return $this->error(HttpStatusCode::NOT_ACCEPTABLE,"Redis write error");
+
+        try {
+            $result = Redis::get($redis_key);
+
+        } catch (\Exception $exception) {
+            return $this->error(HttpStatusCode::INTERNAL_SERVER_ERROR,$exception->getMessage());
+        }
+        if(empty($result)) return $this->error(HttpStatusCode::NOT_ACCEPTABLE,"Redis read error");
+        return $this->success($result);
+    }
     /**
      * 愚公码头公众号服务接口
      * @param Request $request

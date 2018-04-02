@@ -17,15 +17,32 @@ use Log;
 use DB;
 
 
-class MessageApiController extends Controller
+class WxMessageApiController extends Controller
 {
 
     /**
      *
-     * 发送消息接口
+     * 发送模板消息接口
      * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function sendMessage(Request $request) {
+    public function sendTemplateMessage(Request $request) {
+        return $this->messageCommon($request,env('TEMPLATE_MESSAGE_POOL_KEY_RPEFIX'));
+    }
+
+
+    /**
+     *
+     * 发送客服消息接口
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendCustomMessage(Request $request) {
+        return $this->messageCommon($request,env('CUSTOMER_MESSAGE_POOL_KEY_RPEFIX'));
+    }
+
+
+    private function messageCommon(Request $request, $redisKeyPrefix) {
         $jsonbody = $request->json()->all();
         if(empty($jsonbody)) return $this->error(HttpStatusCode::BAD_REQUEST,"Bad request.json body is empty.");
 
@@ -48,7 +65,7 @@ class MessageApiController extends Controller
         if(empty($wx_appid)) { //方便用户和安全，不输入wx appid的情况下，通过appkey获得wx appid，但仅限于该账号下只有一个微信appid 的情况，有多个的话必须指定
             $wx_appid = $this->getWxAppIdByAppKey($app_key);
             if(empty($wx_appid)) {
-                return $this->error(HttpStatusCode::FORBIDDEN,"No weixin appid exist for key=".$app_key);
+                return $this->error(HttpStatusCode::FORBIDDEN,"wexin appid not found for key=".$app_key);
             }
         }
 
@@ -56,9 +73,7 @@ class MessageApiController extends Controller
             return $this->error(HttpStatusCode::BAD_REQUEST,"Appid look bad.");
         }
 
-
-        $key = env('MESSAGE_POOL_KEY_RPEFIX') . $wx_appid;
-
+        $key = $redisKeyPrefix.$wx_appid;
         try {
             $result =  Redis::rpush($key,json_encode($message));
         } catch (\Exception $exception) {
