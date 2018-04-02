@@ -76,7 +76,7 @@ class WxMessageApiController extends Controller
         $key = $redisKeyPrefix.$wx_appid;
         Log::debug("redis key:".$key);
         try {
-            $result =  Redis::rpush($key,json_encode($message));
+            $result =  Redis::rpush($key,json_encode($message,JSON_UNESCAPED_UNICODE));
         } catch (\Exception $exception) {
             Log::error("Push message into redis failed." . $exception->getMessage());
             return $this->error(HttpStatusCode::NOT_MODIFIED,"Send message failed.");
