@@ -15,7 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Log;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
-
+use Illuminate\Support\Facades\Redis;
 class WeixinServeApiController extends Controller
 {
 
