@@ -90,6 +90,29 @@ class WeixinServeApiController extends Controller
     }
 
     /**
+     *
+     * 测试公众号2服务接口 185号
+     * @param Request $request
+     */
+    public function test2OfficialServe(Request $request) {
+
+        $config = [
+            'token'          => env('WECHAT_TEST2_OFFICIAL_ACCOUNT_TOKEN'),
+            'appid'          => env('WECHAT_TEST2_OFFICIAL_ACCOUNT_APPID'),
+            'appsecret'      => env('WECHAT_TEST2_OFFICIAL_ACCOUNT_SECRET'),
+            'encodingaeskey' => env('WECHAT_TEST2_OFFICIAL_ACCOUNT_AES_KEY'),
+            // 配置商户支付参数（可选，在使用支付功能时需要）
+            //'mch_id'         => "1235704602",
+            //'mch_key'        => 'IKI4kpHjU94ji3oqre5zYaQMwLHuZPmj',
+            // 配置商户支付双向证书目录（可选，在使用退款|打款|红包时需要）
+            //'ssl_key'        => '',
+            //'ssl_cer'        => '',
+            // 缓存目录配置（可选，需拥有读写权限）
+            //'cache_path'     => '',
+        ];
+        $this->serviceBizProcess($config);
+    }
+    /**
      * 小程序服务接口
      * @param Request $request
      */
