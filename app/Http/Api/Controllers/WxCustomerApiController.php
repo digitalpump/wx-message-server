@@ -9,12 +9,14 @@
 namespace App\Http\Api\Controllers;
 
 
+use App\Common\Tools\CommonTools;
 use App\Common\Tools\HttpStatusCode;
 use App\Common\Tools\RedisTools;
 use App\Common\Tools\WeChatAccessTools;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Redis;
+use DB;
 class WxCustomerApiController extends Controller
 {
     const ACTION_ADD = "ADD";
@@ -52,7 +54,7 @@ class WxCustomerApiController extends Controller
             return $this->error(HttpStatusCode::FORBIDDEN,"wexin appid not found for key=".$app_key);
         }
 
-        if(!$this->paramsChecking($wx_appid)) {
+        if(!CommonTools::alnumCheck($wx_appid)) {
             return $this->error(HttpStatusCode::BAD_REQUEST,"appid looks bad.");
         }
         $accessToken = RedisTools::getWxAccessToken($wx_appid);
